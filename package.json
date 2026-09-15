@@ -1,0 +1,14 @@
+{
+  "name": "my-app",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun run --workspaces --parallel dev",
+    "typecheck": "bun run --workspaces typecheck",
+    "test": "bun run --workspaces test",
+    "build": "bun run --workspaces build"
+  }
+}
