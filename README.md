@@ -81,6 +81,55 @@ Setelah aktif:
 - Health check: <http://localhost:3000/api/v1/health>
 - Database readiness: <http://localhost:3000/api/v1/ready>
 
+## API endpoints
+
+| Method | Path | Keterangan |
+| --- | --- | --- |
+| `GET` | `/api/v1/health` | Memeriksa apakah proses API aktif |
+| `GET` | `/api/v1/ready` | Memeriksa kesiapan API dan koneksi database |
+| `GET` | `/api/v1/users` | Mengambil seluruh user |
+| `GET` | `/api/v1/users/:id` | Mengambil user berdasarkan UUID |
+| `POST` | `/api/v1/users` | Membuat user baru |
+
+Contoh membuat user:
+
+```bash
+curl -X POST http://localhost:3000/api/v1/users \
+  -H "Content-Type: application/json" \
+  -d '{"name":"John Doe","email":"john@example.com"}'
+```
+
+Respons berhasil menggunakan properti `data`:
+
+```json
+{
+  "data": {
+    "id": "f6ea515e-3870-4611-a49f-9dcdd61fdc0c",
+    "name": "John Doe",
+    "email": "john@example.com"
+  }
+}
+```
+
+Input yang tidak valid menghasilkan status `400` dengan format berikut:
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid request",
+    "fields": {
+      "email": "Email is invalid"
+    },
+    "requestId": "request-id"
+  }
+}
+```
+
+Email dibersihkan dari spasi dan diubah menjadi huruf kecil sebelum disimpan.
+Email yang sudah terdaftar menghasilkan status `409` dengan kode
+`EMAIL_ALREADY_EXISTS`.
+
 ## Perintah utama
 
 Jalankan perintah berikut dari root monorepo:
@@ -88,9 +137,10 @@ Jalankan perintah berikut dari root monorepo:
 | Perintah | Kegunaan |
 | --- | --- |
 | `bun run dev` | Menjalankan semua aplikasi dalam mode development |
-| `bun run typecheck` | Memeriksa tipe TypeScript seluruh workspace |
-| `bun run test` | Menjalankan test seluruh workspace |
-| `bun run build` | Membuat production build seluruh workspace |
+| `bun run --filter @app/api typecheck` | Memeriksa tipe TypeScript API |
+| `bun run --filter @app/api test` | Menjalankan test API |
+| `bun run --filter web build` | Membuat production build web |
+| `bun run --filter web lint` | Menjalankan linter web |
 
 Perintah database dijalankan dari `apps/api`:
 
@@ -99,6 +149,23 @@ Perintah database dijalankan dari `apps/api`:
 | `bun run db:generate` | Membuat migration dari perubahan schema Drizzle |
 | `bun run db:migrate` | Menerapkan migration ke database |
 | `bun run db:studio` | Membuka Drizzle Studio |
+
+## Testing
+
+Pastikan container PostgreSQL sudah aktif sebelum menjalankan test karena
+readiness test mengakses database secara langsung:
+
+```bash
+docker compose up -d postgres
+bun run --filter @app/api test
+```
+
+Untuk menjalankan test API saja:
+
+```bash
+cd apps/api
+bun test
+```
 
 ## Environment
 
