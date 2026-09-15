@@ -10,5 +10,6 @@
     "typecheck": "bun run --workspaces typecheck",
     "test": "bun run --workspaces test",
     "build": "bun run --workspaces build"
+    
   }
 }
