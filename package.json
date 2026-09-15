@@ -11,8 +11,8 @@
   "scripts": {
     "dev": "bun run --workspaces --parallel dev",
     "typecheck": "bun run --workspaces typecheck",
-    "test": "bun run --workspaces test",
-    "build": "bun run --workspaces build",
-    "test:integration": "bun scripts/test-integration.ts"
+    "test": "bun run --filter @app/api test",
+    "test:integration": "bun scripts/test-integration.ts",
+    "build": "bun run --workspaces build"
   }
 }

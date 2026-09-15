@@ -4,7 +4,7 @@ import {
   test,
 } from "bun:test";
 
-import { app } from "../../app";
+import { app } from "../../../app";
 
 describe("GET /api/v1/health", () => {
   test("returns application health", async () => {

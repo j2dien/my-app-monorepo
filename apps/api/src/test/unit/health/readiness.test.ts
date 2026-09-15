@@ -1,6 +1,12 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, mock, test } from "bun:test";
 
-import { app } from "../../app";
+const execute = mock(async () => []);
+
+mock.module("../../../db", () => ({
+  db: { execute },
+}));
+
+const { app } = await import("../../../app");
 
 describe("GET /api/v1/ready", () => {
   test("returns database ready", async () => {
@@ -13,5 +19,6 @@ describe("GET /api/v1/ready", () => {
     };
 
     expect(body.status).toBe("ready");
+    expect(execute).toHaveBeenCalledTimes(1);
   });
 });

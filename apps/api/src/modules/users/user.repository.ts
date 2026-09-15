@@ -5,6 +5,22 @@ import { users } from "../../db/schema";
 
 import type { CreateUserInput } from "./user.schema";
 
+export interface UserRepository {
+  findAll(): Promise<unknown[]>
+
+  findById(
+    id: string,
+  ): Promise<unknown | null>
+
+  findByEmail(
+    email: string,
+  ): Promise<unknown | null>
+
+  create(
+    input: CreateUserInput,
+  ): Promise<unknown>
+}
+
 export const userRepository = {
   async findAll() {
     return db

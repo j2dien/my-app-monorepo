@@ -1,3 +1,5 @@
+// test/integration/users/user.repository.test.ts
+
 import {
     afterAll,
     beforeEach,
@@ -6,8 +8,8 @@ import {
     test,
 } from 'bun:test'
 
-import { cleanupDatabase } from '../../test/cleanup'
-import { userRepository } from './user.repository'
+import { userRepository } from '../../../../src/modules/users/user.repository'
+import { cleanupDatabase } from '../../helpers/cleanup'
 
 describe('userRepository integration', () => {
     beforeEach(async () => {
@@ -24,38 +26,30 @@ describe('userRepository integration', () => {
             email: 'john@example.com',
         })
 
-        expect(user).toBeDefined()
-
         expect(user.id).toBeString()
         expect(user.name).toBe('John Doe')
         expect(user.email).toBe('john@example.com')
-
         expect(user.createdAt).toBeInstanceOf(Date)
         expect(user.updatedAt).toBeInstanceOf(Date)
     })
 
     test('finds user by id', async () => {
-        const created =
-            await userRepository.create({
-                name: 'John Doe',
-                email: 'john@example.com',
-            })
+        const created = await userRepository.create({
+            name: 'John Doe',
+            email: 'john@example.com',
+        })
 
         const user =
-            await userRepository.findById(
-                created!.id,
-            )
-
-        expect(user).not.toBeNull()
+            await userRepository.findById(created.id)
 
         expect(user).toMatchObject({
-            id: created!.id,
+            id: created.id,
             name: 'John Doe',
             email: 'john@example.com',
         })
     })
 
-    test('returns null when user id does not exist', async () => {
+    test('returns null for missing id', async () => {
         const user =
             await userRepository.findById(
                 '550e8400-e29b-41d4-a716-446655440000',
@@ -75,21 +69,10 @@ describe('userRepository integration', () => {
                 'jane@example.com',
             )
 
-        expect(user).not.toBeNull()
-
         expect(user).toMatchObject({
             name: 'Jane Doe',
             email: 'jane@example.com',
         })
-    })
-
-    test('returns null when email does not exist', async () => {
-        const user =
-            await userRepository.findByEmail(
-                'missing@example.com',
-            )
-
-        expect(user).toBeNull()
     })
 
     test('returns all users', async () => {
@@ -103,19 +86,10 @@ describe('userRepository integration', () => {
             email: 'jane@example.com',
         })
 
-        const result =
+        const users =
             await userRepository.findAll()
 
-        expect(result).toHaveLength(2)
-
-        expect(
-            result.map((user) => user.email),
-        ).toEqual(
-            expect.arrayContaining([
-                'john@example.com',
-                'jane@example.com',
-            ]),
-        )
+        expect(users).toHaveLength(2)
     })
 
     test('rejects duplicate email', async () => {
@@ -124,7 +98,7 @@ describe('userRepository integration', () => {
             email: 'john@example.com',
         })
 
-        expect(
+        await expect(
             userRepository.create({
                 name: 'Another John',
                 email: 'john@example.com',

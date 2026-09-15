@@ -1,8 +1,8 @@
-import { db } from '../db'
+import { db } from '../../db'
 import {
     appMetadata,
     users,
-} from '../db/schema'
+} from '../../db/schema'
 
 export async function cleanupDatabase() {
     // Urutkan child table sebelum parent table
