@@ -1,0 +1,26 @@
+services:
+  postgres-test:
+    image: postgres:17
+    restart: "no"
+
+    environment:
+      POSTGRES_DB: app_test
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+
+    ports:
+      - "55433:5432"
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U app -d app_test",
+        ]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+      start_period: 2s
+
+    tmpfs:
+      - /var/lib/postgresql/data

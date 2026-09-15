@@ -4,6 +4,9 @@
   "workspaces": {
     "": {
       "name": "my-app",
+      "devDependencies": {
+        "@types/bun": "^1.4.2",
+      },
     },
     "apps/api": {
       "name": "@app/api",
