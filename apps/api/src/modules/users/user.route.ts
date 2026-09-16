@@ -1,16 +1,24 @@
 import { Hono } from "hono";
 
 import { validator } from "../../lib/validator";
-import { createUserSchema, userIdParamSchema, updateUserSchema } from "./user.schema";
+import {
+  createUserSchema,
+  userIdParamSchema,
+  updateUserSchema,
+  usersQuerySchema,
+} from "./user.schema";
 
 import { userService } from "./user.service";
 
 export const userRoute = new Hono()
-  .get("/", async (c) => {
-    const users = await userService.getUsers();
+  .get("/", validator("query", usersQuerySchema), async (c) => {
+    const query = c.req.valid("query");
+
+    const result = await userService.getUsers(query);
 
     return c.json({
-      data: users,
+      data: result.items,
+      pagination: result.pagination,
     });
   })
 
@@ -49,51 +57,35 @@ export const userRoute = new Hono()
     },
   )
   .patch(
-    '/:id',
+    "/:id",
 
-    validator(
-      'param',
-      userIdParamSchema,
-    ),
+    validator("param", userIdParamSchema),
 
-    validator(
-      'json',
-      updateUserSchema,
-    ),
+    validator("json", updateUserSchema),
 
     async (c) => {
-      const { id } =
-        c.req.valid('param')
+      const { id } = c.req.valid("param");
 
-      const input =
-        c.req.valid('json')
+      const input = c.req.valid("json");
 
-      const user =
-        await userService.updateUser(
-          id,
-          input,
-        )
+      const user = await userService.updateUser(id, input);
 
       return c.json({
         data: user,
-      })
+      });
     },
   )
 
   .delete(
-    '/:id',
+    "/:id",
 
-    validator(
-      'param',
-      userIdParamSchema,
-    ),
+    validator("param", userIdParamSchema),
 
     async (c) => {
-      const { id } =
-        c.req.valid('param')
+      const { id } = c.req.valid("param");
 
-      await userService.deleteUser(id)
+      await userService.deleteUser(id);
 
-      return c.body(null, 204)
+      return c.body(null, 204);
     },
   );

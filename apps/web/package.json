@@ -13,6 +13,7 @@
     "@app/api": "workspace:*",
     "@app/contracts": "workspace:*",
     "@tailwindcss/vite": "^4.3.3",
+    "@tanstack/react-form": "^1.33.5",
     "@tanstack/react-query": "^5.102.8",
     "@tanstack/react-router": "^1.170.36",
     "hono": "^4.13.7",

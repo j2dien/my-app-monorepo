@@ -1,37 +1,45 @@
-import { eq } from "drizzle-orm";
+import { eq, asc, ilike, or } from "drizzle-orm";
 
 import { db } from "../../db";
 import { users } from "../../db/schema";
 
-import type { CreateUserInput, UpdateUserInput } from "./user.schema";
+import type {
+  UsersQuery,
+  CreateUserInput,
+  UpdateUserInput,
+} from "./user.schema";
 
-export interface UserRepository {
-  findAll(): Promise<unknown[]>
-
-  findById(
-    id: string,
-  ): Promise<unknown | null>
-
-  findByEmail(
-    email: string,
-  ): Promise<unknown | null>
-
-  create(
-    input: CreateUserInput,
-  ): Promise<unknown>
-}
 
 export const userRepository = {
-  async findAll() {
-    return db
-      .select({
-        id: users.id,
-        name: users.name,
-        email: users.email,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt,
-      })
-      .from(users);
+  async findMany({ page, pageSize, search }: UsersQuery) {
+    const offset = (page - 1) * pageSize;
+
+    const condition = search
+      ? or(ilike(users.name, `%${search}%`), ilike(users.email, `%${search}%`))
+      : undefined;
+
+    const [items, total] = await Promise.all([
+      db
+        .select({
+          id: users.id,
+          name: users.name,
+          email: users.email,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        })
+        .from(users)
+        .where(condition)
+        .orderBy(asc(users.createdAt), asc(users.id))
+        .limit(pageSize)
+        .offset(offset),
+
+      db.$count(users, condition),
+    ]);
+
+    return {
+      items,
+      total,
+    };
   },
 
   async findById(id: string) {
@@ -76,10 +84,7 @@ export const userRepository = {
     return user;
   },
 
-  async update(
-    id: string,
-    input: UpdateUserInput,
-  ) {
+  async update(id: string, input: UpdateUserInput) {
     const [user] = await db
       .update(users)
       .set({
@@ -87,19 +92,16 @@ export const userRepository = {
         updatedAt: new Date(),
       })
       .where(eq(users.id, id))
-      .returning()
+      .returning();
 
-    return user ?? null
+    return user ?? null;
   },
 
   async delete(id: string) {
-    const [user] = await db
-      .delete(users)
-      .where(eq(users.id, id))
-      .returning({
-        id: users.id,
-      })
+    const [user] = await db.delete(users).where(eq(users.id, id)).returning({
+      id: users.id,
+    });
 
-    return user ?? null
+    return user ?? null;
   },
 };
