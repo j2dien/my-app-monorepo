@@ -11,6 +11,7 @@
     "apps/api": {
       "name": "@app/api",
       "dependencies": {
+        "@app/contracts": "workspace:*",
         "@hono/zod-validator": "^0.9.1",
         "drizzle-orm": "^0.45.2",
         "hono": "^4.13.7",
@@ -30,6 +31,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@app/api": "workspace:*",
+        "@app/contracts": "workspace:*",
         "@tailwindcss/vite": "^4.3.3",
         "@tanstack/react-query": "^5.102.8",
         "@tanstack/react-router": "^1.170.36",
@@ -51,9 +53,17 @@
         "vite": "^8.3.0",
       },
     },
+    "packages/contracts": {
+      "name": "@app/contracts",
+      "dependencies": {
+        "zod": "^4.6.5",
+      },
+    },
   },
   "packages": {
     "@app/api": ["@app/api@workspace:apps/api"],
+
+    "@app/contracts": ["@app/contracts@workspace:packages/contracts"],
 
     "@babel/code-frame": ["@babel/code-frame@7.29.7", "", { "dependencies": { "@babel/helper-validator-identifier": "^7.29.7", "js-tokens": "^4.0.0", "picocolors": "^1.1.1" } }, "sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw=="],
 

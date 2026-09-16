@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "../../db";
 import { users } from "../../db/schema";
 
-import type { CreateUserInput } from "./user.schema";
+import type { CreateUserInput, UpdateUserInput } from "./user.schema";
 
 export interface UserRepository {
   findAll(): Promise<unknown[]>
@@ -74,5 +74,32 @@ export const userRepository = {
     }
 
     return user;
+  },
+
+  async update(
+    id: string,
+    input: UpdateUserInput,
+  ) {
+    const [user] = await db
+      .update(users)
+      .set({
+        ...input,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id))
+      .returning()
+
+    return user ?? null
+  },
+
+  async delete(id: string) {
+    const [user] = await db
+      .delete(users)
+      .where(eq(users.id, id))
+      .returning({
+        id: users.id,
+      })
+
+    return user ?? null
   },
 };

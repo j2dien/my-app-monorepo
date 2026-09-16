@@ -9,6 +9,7 @@ import {
 
 import type {
   CreateUserInput,
+  UpdateUserInput
 } from './user.schema'
 
 type UserRepository =
@@ -71,6 +72,56 @@ export function createUserService(
         }
 
         throw error
+      }
+    },
+
+    async updateUser(
+      id: string,
+      input: UpdateUserInput,
+    ) {
+      try {
+        const user =
+          await repository.update(
+            id,
+            input,
+          )
+
+        if (!user) {
+          throw new AppError(
+            'USER_NOT_FOUND',
+            'User not found',
+            404,
+          )
+        }
+
+        return user
+      } catch (error) {
+        if (
+          isPostgresUniqueViolation(
+            error,
+          )
+        ) {
+          throw new AppError(
+            'EMAIL_ALREADY_EXISTS',
+            'Email already registered',
+            409,
+          )
+        }
+
+        throw error
+      }
+    },
+
+    async deleteUser(id: string) {
+      const user =
+        await repository.delete(id)
+
+      if (!user) {
+        throw new AppError(
+          'USER_NOT_FOUND',
+          'User not found',
+          404,
+        )
       }
     },
   }

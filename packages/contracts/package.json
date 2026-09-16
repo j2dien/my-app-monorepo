@@ -1,0 +1,11 @@
+{
+  "name": "@app/contracts",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./users": "./src/users.ts"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  }
+}
