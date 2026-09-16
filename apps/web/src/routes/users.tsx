@@ -8,6 +8,7 @@ import { createUserMutationOptions } from "@/features/users/api/user.mutations";
 import { usersQueryOptions } from "@/features/users/api/user.queries";
 import { UserForm } from "@/features/users/components/user-form";
 import { ApiError } from "@/lib/api/error";
+import { userKeys } from "@/features/users/api/user.keys";
 
 const usersSearchSchema = z.object({
   page: z.number().int().positive().default(1).catch(1),
@@ -83,7 +84,7 @@ function UsersPage() {
        * akan dianggap stale.
        */
       await queryClient.invalidateQueries({
-        queryKey: ["users", "list"],
+        queryKey: userKeys.lists(),
       });
     },
   });
@@ -97,7 +98,7 @@ function UsersPage() {
 
   const pagination = data?.pagination;
 
-  function handleSearchSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function handleSearchSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const normalizedSearch = searchValue.trim();

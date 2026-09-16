@@ -2,16 +2,12 @@ import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 
 import { api } from "@/lib/api/client";
 import { throwApiError } from "@/lib/api/error";
-
-export interface UsersQueryParams {
-  page: number;
-  pageSize: number;
-  search?: string;
-}
+import { userKeys } from "./user.keys";
+import type { UsersQueryParams } from "./user.types";
 
 export function usersQueryOptions(params: UsersQueryParams) {
   return queryOptions({
-    queryKey: ["users", "list", params],
+    queryKey: userKeys.list(params),
 
     staleTime: 30_000,
 
@@ -43,7 +39,7 @@ export function usersQueryOptions(params: UsersQueryParams) {
 
 export function userQueryOptions(userId: string) {
   return queryOptions({
-    queryKey: ["users", userId],
+    queryKey: userKeys.detail(userId),
     staleTime: 30_000,
 
     queryFn: async () => {

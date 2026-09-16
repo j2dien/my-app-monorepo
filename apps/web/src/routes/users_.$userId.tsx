@@ -13,6 +13,7 @@ import {
 import { userQueryOptions } from "@/features/users/api/user.queries";
 import { ApiError } from "@/lib/api/error";
 import { UserForm } from "@/features/users/components/user-form";
+import { userKeys } from "@/features/users/api/user.keys";
 
 export const Route = createFileRoute("/users_/$userId")({
   loader: ({ context, params }) =>
@@ -34,10 +35,10 @@ function UserDetailPage() {
     ...updateUserMutationOptions(userId),
 
     onSuccess: async (updatedUser) => {
-      queryClient.setQueryData(["users", userId], updatedUser);
+      queryClient.setQueryData(userKeys.detail(userId), updatedUser);
 
       await queryClient.invalidateQueries({
-        queryKey: ["users", "list"],
+        queryKey: userKeys.lists(),
       });
     },
   });
@@ -47,12 +48,12 @@ function UserDetailPage() {
 
     onSuccess: async () => {
       queryClient.removeQueries({
-        queryKey: ["users", userId],
+        queryKey: userKeys.detail(userId),
         exact: true,
       });
 
       await queryClient.invalidateQueries({
-        queryKey: ["users", "list"],
+        queryKey: userKeys.lists(),
       });
 
       await router.navigate({
