@@ -20,6 +20,10 @@ export function usersQueryOptions(params: UsersQueryParams) {
 
           pageSize: String(params.pageSize),
 
+          sortBy: params.sortBy,
+
+          sortOrder: params.sortOrder,
+
           ...(params.search
             ? {
                 search: params.search,

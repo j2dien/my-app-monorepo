@@ -16,8 +16,6 @@ export function createUserService(repository: UserRepository) {
     async getUsers(query: UsersQuery) {
       const result = await repository.findMany(query);
 
-      const totalPages = Math.ceil(result.total / query.pageSize);
-
       return {
         items: result.items,
 
@@ -25,7 +23,8 @@ export function createUserService(repository: UserRepository) {
           page: query.page,
           pageSize: query.pageSize,
           total: result.total,
-          totalPages,
+
+          totalPages: Math.ceil(result.total / query.pageSize),
         },
       };
     },

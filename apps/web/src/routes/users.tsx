@@ -16,6 +16,13 @@ const usersSearchSchema = z.object({
   pageSize: z.number().int().min(1).max(100).default(20).catch(20),
 
   search: z.string().max(100).optional(),
+
+  sortBy: z
+    .enum(["name", "email", "createdAt"])
+    .default("createdAt")
+    .catch("createdAt"),
+
+  sortOrder: z.enum(["asc", "desc"]).default("desc").catch("desc"),
 });
 
 export const Route = createFileRoute("/users")({
@@ -25,6 +32,8 @@ export const Route = createFileRoute("/users")({
     page: search.page,
     pageSize: search.pageSize,
     search: search.search,
+    sortBy: search.sortBy,
+    sortOrder: search.sortOrder,
   }),
 
   loader: ({ context, deps }) =>
@@ -64,6 +73,8 @@ function UsersPage() {
       page: search.page,
       pageSize: search.pageSize,
       search: search.search,
+      sortBy: search.sortBy,
+      sortOrder: search.sortOrder,
     }),
   );
 
@@ -196,6 +207,57 @@ function UsersPage() {
               </button>
             )}
           </form>
+
+          {/* Sorting */}
+          <div className="mt-4 flex flex-wrap gap-3">
+            <select
+              value={search.sortBy}
+              onChange={(event) => {
+                const sortBy = event.target.value as
+                  | "name"
+                  | "email"
+                  | "createdAt";
+
+                void navigate({
+                  search: (previous) => ({
+                    ...previous,
+
+                    // sorting baru kembali ke page 1
+                    page: 1,
+
+                    sortBy,
+                  }),
+                });
+              }}
+              className="rounded-md border border-zinc-300 px-3 py-2 text-sm"
+            >
+              <option value="createdAt">Created</option>
+
+              <option value="name">Name</option>
+
+              <option value="email">Email</option>
+            </select>
+
+            <select
+              value={search.sortOrder}
+              onChange={(event) => {
+                const sortOrder = event.target.value as "asc" | "desc";
+
+                void navigate({
+                  search: (previous) => ({
+                    ...previous,
+                    page: 1,
+                    sortOrder,
+                  }),
+                });
+              }}
+              className="rounded-md border border-zinc-300 px-3 py-2 text-sm"
+            >
+              <option value="desc">Descending</option>
+
+              <option value="asc">Ascending</option>
+            </select>
+          </div>
 
           {/* Loading */}
           {usersQuery.isPending && (

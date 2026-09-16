@@ -1,4 +1,4 @@
-import { eq, asc, ilike, or } from "drizzle-orm";
+import { eq, asc, desc, ilike, or } from "drizzle-orm";
 
 import { db } from "../../db";
 import { users } from "../../db/schema";
@@ -9,14 +9,21 @@ import type {
   UpdateUserInput,
 } from "./user.schema";
 
-
 export const userRepository = {
-  async findMany({ page, pageSize, search }: UsersQuery) {
+  async findMany({ page, pageSize, search, sortBy, sortOrder }: UsersQuery) {
     const offset = (page - 1) * pageSize;
 
     const condition = search
       ? or(ilike(users.name, `%${search}%`), ilike(users.email, `%${search}%`))
       : undefined;
+
+    const sortColumn = {
+      name: users.name,
+      email: users.email,
+      createdAt: users.createdAt,
+    }[sortBy];
+
+    const sort = sortOrder === "asc" ? asc : desc;
 
     const [items, total] = await Promise.all([
       db
@@ -29,7 +36,13 @@ export const userRepository = {
         })
         .from(users)
         .where(condition)
-        .orderBy(asc(users.createdAt), asc(users.id))
+        // primary ordering
+        .orderBy(
+          sort(sortColumn),
+
+          // deterministic tie-breaker
+          asc(users.id),
+        )
         .limit(pageSize)
         .offset(offset),
 
