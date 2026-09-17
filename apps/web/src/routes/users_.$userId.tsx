@@ -31,12 +31,46 @@ function UserDetailPage() {
 
   const { data: user } = useSuspenseQuery(userQueryOptions(userId));
 
+  const detailOptions = userQueryOptions(userId);
+
   const updateMutation = useMutation({
     ...updateUserMutationOptions(userId),
 
-    onSuccess: async (updatedUser) => {
-      queryClient.setQueryData(userKeys.detail(userId), updatedUser);
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({
+        queryKey: detailOptions.queryKey,
+        exact: true,
+      });
 
+      const previousUser = queryClient.getQueryData(detailOptions.queryKey);
+
+      queryClient.setQueryData(detailOptions.queryKey, (current) => {
+        if (!current) {
+          return current;
+        }
+
+        return {
+          ...current,
+          ...input,
+        };
+      });
+
+      return {
+        previousUser,
+      };
+    },
+
+    onError: (_error, _input, context) => {
+      if (context?.previousUser) {
+        queryClient.setQueryData(detailOptions.queryKey, context.previousUser);
+      }
+    },
+
+    onSuccess: (updatedUser) => {
+      queryClient.setQueryData(detailOptions.queryKey, updatedUser);
+    },
+
+    onSettled: async () => {
       await queryClient.invalidateQueries({
         queryKey: userKeys.lists(),
       });

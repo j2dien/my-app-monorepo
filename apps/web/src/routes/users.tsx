@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
@@ -9,6 +9,7 @@ import { usersQueryOptions } from "@/features/users/api/user.queries";
 import { UserForm } from "@/features/users/components/user-form";
 import { ApiError } from "@/lib/api/error";
 import { userKeys } from "@/features/users/api/user.keys";
+import { UserSearchInput } from "@/features/users/components/user-search-input";
 
 const usersSearchSchema = z.object({
   page: z.number().int().positive().default(1).catch(1),
@@ -24,6 +25,8 @@ const usersSearchSchema = z.object({
 
   sortOrder: z.enum(["asc", "desc"]).default("desc").catch("desc"),
 });
+
+type PageSize = 10 | 20 | 50 | 100;
 
 export const Route = createFileRoute("/users")({
   validateSearch: usersSearchSchema,
@@ -50,15 +53,6 @@ function UsersPage() {
   const queryClient = useQueryClient();
 
   /*
-   * Local state untuk search input.
-   *
-   * URL tetap menjadi source of truth,
-   * tapi kita tidak mengubah URL pada
-   * setiap keyboard input.
-   */
-  const [searchValue, setSearchValue] = useState(search.search ?? "");
-
-  /*
    * Digunakan untuk reset UserForm
    * setelah create berhasil.
    *
@@ -77,6 +71,48 @@ function UsersPage() {
       sortOrder: search.sortOrder,
     }),
   );
+
+  const isUpdating = usersQuery.isFetching && !usersQuery.isPending;
+
+  const data = usersQuery.data;
+
+  const users = data?.data ?? [];
+
+  const pagination = data?.pagination;
+
+  const hasSearch = Boolean(search.search?.trim());
+
+  useEffect(() => {
+    if (!pagination) {
+      return;
+    }
+
+    if (pagination.page >= pagination.totalPages) {
+      return;
+    }
+
+    void queryClient
+      .query(
+        usersQueryOptions({
+          page: pagination.page + 1,
+          pageSize: search.pageSize,
+          search: search.search,
+          sortBy: search.sortBy,
+          sortOrder: search.sortOrder,
+        }),
+      )
+      .catch(() => {
+        // Prefetch gagal tidak perlu
+        // mengganggu halaman sekarang.
+      });
+  }, [
+    pagination,
+    queryClient,
+    search.pageSize,
+    search.search,
+    search.sortBy,
+    search.sortOrder,
+  ]);
 
   const createMutation = useMutation({
     ...createUserMutationOptions,
@@ -102,32 +138,6 @@ function UsersPage() {
 
   const createError =
     createMutation.error instanceof ApiError ? createMutation.error : null;
-
-  const data = usersQuery.data;
-
-  const users = data?.data ?? [];
-
-  const pagination = data?.pagination;
-
-  function handleSearchSubmit(event: React.SubmitEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const normalizedSearch = searchValue.trim();
-
-    void navigate({
-      search: (previous) => ({
-        ...previous,
-
-        /*
-         * Search baru selalu kembali
-         * ke page pertama.
-         */
-        page: 1,
-
-        search: normalizedSearch || undefined,
-      }),
-    });
-  }
 
   function handlePreviousPage() {
     if (!pagination || pagination.page <= 1) {
@@ -160,6 +170,7 @@ function UsersPage() {
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_360px]">
         {/* Users list */}
         <section>
+          {/* Header */}
           <div>
             <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">
               Users
@@ -170,43 +181,32 @@ function UsersPage() {
             </p>
           </div>
 
+          {isUpdating && (
+            <div className="flex items-center gap-2 text-sm text-zinc-500">
+              <span className="size-3 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-700" />
+              Updating...
+            </div>
+          )}
+
           {/* Search */}
-          <form onSubmit={handleSearchSubmit} className="mt-6 flex gap-2">
-            <input
-              type="search"
-              value={searchValue}
-              placeholder="Search name or email..."
-              onChange={(event) => setSearchValue(event.target.value)}
-              className="min-w-0 flex-1 rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200"
+          <div className="mt-6">
+            <UserSearchInput
+              key={search.search ?? ""}
+              initialValue={search.search ?? ""}
+              currentSearch={search.search}
+              onSearchChange={(nextSearch) => {
+                void navigate({
+                  replace: true,
+
+                  search: (previous) => ({
+                    ...previous,
+                    page: 1,
+                    search: nextSearch,
+                  }),
+                });
+              }}
             />
-
-            <button
-              type="submit"
-              className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-800"
-            >
-              Search
-            </button>
-
-            {search.search && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchValue("");
-
-                  void navigate({
-                    search: (previous) => ({
-                      ...previous,
-                      page: 1,
-                      search: undefined,
-                    }),
-                  });
-                }}
-                className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
-              >
-                Clear
-              </button>
-            )}
-          </form>
+          </div>
 
           {/* Sorting */}
           <div className="mt-4 flex flex-wrap gap-3">
@@ -261,15 +261,29 @@ function UsersPage() {
 
           {/* Loading */}
           {usersQuery.isPending && (
-            <div className="mt-8 rounded-lg border border-zinc-200 p-6 text-sm text-zinc-500">
-              Loading users...
+            <div className="mt-8 rounded-lg border border-zinc-200 p-6 text-sm">
+              <p className="text-sm text-zinc-500">Loading users...</p>
             </div>
           )}
 
           {/* Query error */}
           {usersQuery.isError && (
-            <div className="mt-8 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-              Failed to load users.
+            <div className="mt-6 rounded-lg border border-red-200 bg-red-50 p-6">
+              <h2 className="font-medium text-red-900">Failed to load users</h2>
+
+              <p className="mt-1 text-sm text-red-700">
+                Something went wrong while loading the user list.
+              </p>
+
+              <button
+                type="button"
+                onClick={() => {
+                  void usersQuery.refetch();
+                }}
+                className="mt-4 rounded-md border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100"
+              >
+                Try again
+              </button>
             </div>
           )}
 
@@ -277,20 +291,54 @@ function UsersPage() {
           {!usersQuery.isPending &&
             !usersQuery.isError &&
             users.length === 0 && (
-              <div className="mt-8 rounded-lg border border-dashed border-zinc-300 p-10 text-center">
-                <p className="font-medium text-zinc-900">No users found</p>
+              <div className="mt-6 rounded-lg border border-dashed border-zinc-300 p-8 text-center">
+                {hasSearch ? (
+                  <>
+                    <h2 className="font-medium text-zinc-900">
+                      No users found
+                    </h2>
 
-                <p className="mt-1 text-sm text-zinc-500">
-                  {search.search
-                    ? "Try another search."
-                    : "Create your first user."}
-                </p>
+                    <p className="mt-2 text-sm text-zinc-500">
+                      No users match "{search.search}".
+                    </p>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void navigate({
+                          replace: true,
+                          search: (previous) => ({
+                            ...previous,
+                            page: 1,
+                            search: undefined,
+                          }),
+                        });
+                      }}
+                      className="mt-4 rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-50"
+                    >
+                      Clear search
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="font-medium text-zinc-900">No users yet</h2>
+
+                    <p className="mt-2 text-sm text-zinc-500">
+                      Create your first user using the form.
+                    </p>
+                  </>
+                )}
               </div>
             )}
 
           {/* User list */}
-          {users.length > 0 && (
-            <div className="mt-8 space-y-3">
+          {!usersQuery.isError && users.length > 0 && (
+            <div
+              className={[
+                "mt-6 space-y-3 transition-opacity",
+                usersQuery.isPlaceholderData ? "opacity-60" : "opacity-100",
+              ].join(" ")}
+            >
               {users.map((user) => (
                 <Link
                   key={user.id}
@@ -298,23 +346,11 @@ function UsersPage() {
                   params={{
                     userId: user.id,
                   }}
-                  className="block rounded-lg border border-zinc-200 p-4 transition hover:border-zinc-300 hover:bg-zinc-50"
+                  className="block rounded-lg border border-zinc-200 p-4 hover:bg-zinc-50"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <div className="truncate font-medium text-zinc-950">
-                        {user.name}
-                      </div>
+                  <div className="font-medium">{user.name}</div>
 
-                      <div className="mt-1 truncate text-sm text-zinc-500">
-                        {user.email}
-                      </div>
-                    </div>
-
-                    <span className="shrink-0 text-sm text-zinc-400">
-                      View →
-                    </span>
-                  </div>
+                  <div className="text-sm text-zinc-500">{user.email}</div>
                 </Link>
               ))}
             </div>
@@ -323,30 +359,73 @@ function UsersPage() {
           {/* Pagination */}
           {pagination && pagination.total > 0 && (
             <div className="mt-8 flex flex-col gap-4 border-t border-zinc-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
-              <div className="text-sm text-zinc-500">
-                Page {pagination.page} of {pagination.totalPages}
-                {" · "}
-                {pagination.total} users
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-zinc-500">
+                  {pagination.total} users
+                </span>
+
+                <label className="flex items-center gap-2 text-sm text-zinc-500">
+                  Per page
+                  <select
+                    value={search.pageSize}
+                    onChange={(event) => {
+                      const pageSize = Number(event.target.value) as PageSize;
+
+                      void navigate({
+                        search: (previous) => ({
+                          ...previous,
+
+                          // page size baru bisa membuat
+                          // page lama tidak valid.
+                          page: 1,
+
+                          pageSize,
+                        }),
+                      });
+                    }}
+                    className="rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-sm text-zinc-700 outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200"
+                  >
+                    <option value={10}>10</option>
+
+                    <option value={20}>20</option>
+
+                    <option value={50}>50</option>
+
+                    <option value={100}>100</option>
+                  </select>
+                </label>
               </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  disabled={pagination.page <= 1}
-                  onClick={handlePreviousPage}
-                  className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Previous
-                </button>
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-zinc-500">
+                  Page {pagination.page} of {pagination.totalPages}
+                </span>
 
-                <button
-                  type="button"
-                  disabled={pagination.page >= pagination.totalPages}
-                  onClick={handleNextPage}
-                  className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Next
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={
+                      pagination.page <= 1 || usersQuery.isPlaceholderData
+                    }
+                    onClick={handlePreviousPage}
+                    className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={
+                      !pagination ||
+                      pagination.page >= pagination.totalPages ||
+                      usersQuery.isPlaceholderData
+                    }
+                    onClick={handleNextPage}
+                    className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
             </div>
           )}
