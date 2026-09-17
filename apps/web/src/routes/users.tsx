@@ -19,7 +19,10 @@ import { UserListHeader } from "@/features/users/components/user-list-header";
 const usersSearchSchema = z.object({
   page: z.number().int().positive().default(1).catch(1),
 
-  pageSize: z.number().int().min(1).max(100).default(20).catch(20),
+  pageSize: z
+    .union([z.literal(10), z.literal(20), z.literal(50), z.literal(100)])
+    .default(20)
+    .catch(20),
 
   search: z.string().max(100).optional(),
 

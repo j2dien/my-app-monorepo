@@ -1,4 +1,4 @@
-type PageSize = 10 | 20 | 50 | 100;
+import type { PageSize } from "@/features/users/api/user.types";
 
 interface UserPaginationProps {
   page: number;
