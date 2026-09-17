@@ -1,12 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
 interface UserSearchInputProps {
   initialValue: string;
-
   currentSearch?: string;
-
   onSearchChange: (value: string | undefined) => void;
 }
 
@@ -19,7 +17,31 @@ export function UserSearchInput({
 
   const debouncedSearch = useDebouncedValue(searchValue, 400);
 
+  const lastSubmittedSearchRef = useRef(currentSearch);
+
+  /*
+   * Local input -> URL
+   */
   useEffect(() => {
+    /*
+     * Jangan submit nilai debounce lama.
+     *
+     * Ini penting ketika:
+     * - user masih mengetik
+     * - tombol Clear baru saja ditekan
+     */
+    if (debouncedSearch !== searchValue) {
+      return;
+    }
+
+    /*
+     * Kalau URL berubah dari luar,
+     * tunggu effect sinkronisasi di bawah.
+     */
+    if (currentSearch !== lastSubmittedSearchRef.current) {
+      return;
+    }
+
     const normalized = debouncedSearch.trim();
 
     const nextSearch = normalized || undefined;
@@ -28,13 +50,45 @@ export function UserSearchInput({
       return;
     }
 
+    lastSubmittedSearchRef.current = nextSearch;
+
     onSearchChange(nextSearch);
-  }, [debouncedSearch, currentSearch, onSearchChange]);
+  }, [debouncedSearch, searchValue, currentSearch, onSearchChange]);
+
+  /*
+   * URL -> local input
+   *
+   * Dipakai untuk browser Back/Forward
+   * atau perubahan search dari luar component.
+   */
+  useEffect(() => {
+    if (currentSearch === lastSubmittedSearchRef.current) {
+      return;
+    }
+
+    lastSubmittedSearchRef.current = currentSearch;
+
+    // oxlint-disable-next-line react/set-state-in-effect -- Sync local draft with router navigation.
+    setSearchValue(currentSearch ?? "");
+  }, [currentSearch]);
 
   function handleClear() {
+    /*
+     * Input langsung kosong tanpa menunggu debounce.
+     */
     setSearchValue("");
 
-    onSearchChange(undefined);
+    /*
+     * Tandai nilai URL yang sedang kita submit.
+     */
+    lastSubmittedSearchRef.current = undefined;
+
+    /*
+     * URL langsung dibersihkan.
+     */
+    if (currentSearch !== undefined) {
+      onSearchChange(undefined);
+    }
   }
 
   return (
