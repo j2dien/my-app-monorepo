@@ -216,16 +216,6 @@ function UsersPage() {
         {/* Users list */}
         <section>
           {/* Header */}
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">
-              Users
-            </h1>
-
-            <p className="mt-2 text-sm text-zinc-500">
-              Manage users registered in the application.
-            </p>
-          </div>
-
           <UserListHeader isUpdating={usersQuery.isRefetching} />
 
           {/* Search */}
