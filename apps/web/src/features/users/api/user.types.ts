@@ -1,17 +1,15 @@
-export type UserSortBy = "name" | "email" | "createdAt";
+import type {
+  UserSearch,
+} from "./user-search.schema";
 
-export type SortOrder = "asc" | "desc";
+export type UserSortBy =
+  UserSearch["sortBy"];
+
+export type SortOrder =
+  UserSearch["sortOrder"];
 
 export type PageSize =
-  | 10
-  | 20
-  | 50
-  | 100;
+  UserSearch["pageSize"];
 
-export interface UsersQueryParams {
-  page: number;
-  pageSize: number;
-  search?: string;
-  sortBy: UserSortBy;
-  sortOrder: SortOrder;
-}
+export type UsersQueryParams =
+  UserSearch;

@@ -15,27 +15,10 @@ import { UserSortControls } from "@/features/users/components/user-sort-controls
 import { UserListState } from "@/features/users/components/user-list-state";
 import { UserCreatePanel } from "@/features/users/components/user-create-panel";
 import { UserListHeader } from "@/features/users/components/user-list-header";
-
-const usersSearchSchema = z.object({
-  page: z.number().int().positive().default(1).catch(1),
-
-  pageSize: z
-    .union([z.literal(10), z.literal(20), z.literal(50), z.literal(100)])
-    .default(20)
-    .catch(20),
-
-  search: z.string().max(100).optional(),
-
-  sortBy: z
-    .enum(["name", "email", "createdAt"])
-    .default("createdAt")
-    .catch("createdAt"),
-
-  sortOrder: z.enum(["asc", "desc"]).default("desc").catch("desc"),
-});
+import { userSearchSchema } from "@/features/users/api/user-search.schema";
 
 export const Route = createFileRoute("/users")({
-  validateSearch: usersSearchSchema,
+  validateSearch: userSearchSchema,
 
   loaderDeps: ({ search }) => ({
     page: search.page,
