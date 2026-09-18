@@ -242,3 +242,134 @@ test("searches users after debounce", async () => {
     }),
   ).toBe(true);
 });
+
+test("clears search and restores the full user list", async () => {
+  const user = userEvent.setup();
+
+  const requestedUrls: string[] = [];
+
+  mockFetchWithHandler(async (request) => {
+    requestedUrls.push(request.url);
+
+    const url = new URL(request.url);
+
+    const search = url.searchParams.get("search");
+
+    if (search === "john") {
+      return Response.json({
+        data: [
+          {
+            id: "user-1",
+            name: "John Doe",
+            email: "john@example.com",
+            createdAt: "2026-09-18T00:00:00.000Z",
+            updatedAt: "2026-09-18T00:00:00.000Z",
+          },
+        ],
+
+        pagination: {
+          page: 1,
+          pageSize: 20,
+          total: 1,
+          totalPages: 1,
+        },
+      });
+    }
+
+    return Response.json(usersResponse);
+  });
+
+  const { findByText, getByRole, queryByText, router } = renderRouter({
+    initialEntry: "/users?page=1&pageSize=20",
+  });
+
+  /*
+   * Tunggu initial list selesai.
+   */
+  expect(await findByText("Jane Doe")).toBeInTheDocument();
+
+  const searchInput = getByRole("searchbox");
+
+  /*
+   * Search "john".
+   */
+  await user.type(searchInput, "john");
+
+  /*
+   * Tunggu sampai hasil search
+   * menggantikan initial list.
+   */
+  await waitFor(
+    () => {
+      expect(queryByText("Jane Doe") === null).toBe(true);
+    },
+    {
+      timeout: 1500,
+    },
+  );
+
+  /*
+   * Pastikan John tetap terlihat.
+   */
+  expect(queryByText("John Doe") !== null).toBe(true);
+
+  /*
+   * URL harus memiliki search=john.
+   */
+  expect(router.state.location.search).toMatchObject({
+    page: 1,
+    pageSize: 20,
+    search: "john",
+  });
+
+  /*
+   * Pastikan request search=john
+   * memang pernah dikirim.
+   */
+  function getSearchParam(requestUrl: string) {
+    return new URL(requestUrl).searchParams.get("search");
+  }
+
+  const johnRequestIndex = requestedUrls.findIndex(
+    (requestUrl) => getSearchParam(requestUrl) === "john",
+  );
+
+  expect(johnRequestIndex).toBeGreaterThanOrEqual(0);
+
+  /*
+   * Clear search.
+   */
+  await user.click(
+    getByRole("button", {
+      name: "Clear",
+    }),
+  );
+
+  /*
+   * Full list harus kembali.
+   *
+   * Data ini bisa berasal dari
+   * TanStack Query cache, jadi kita
+   * tidak mewajibkan request baru.
+   */
+  expect(await findByText("Jane Doe")).toBeInTheDocument();
+
+  expect(await findByText("John Doe")).toBeInTheDocument();
+
+  /*
+   * URL search param harus hilang.
+   */
+  await waitFor(
+    () => {
+      expect(router.state.location.search.search === undefined).toBe(true);
+    },
+    {
+      timeout: 1000,
+    },
+  );
+
+  /*
+   * Input harus kembali kosong.
+   */
+  expect(getByRole("searchbox")).toHaveValue("");
+});
