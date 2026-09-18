@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "bun test",
+    "test:watch": "bun test --watch"
   },
   "dependencies": {
     "@app/api": "workspace:*",
@@ -23,8 +25,13 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@happy-dom/global-registrator": "^20.14.5",
     "@tanstack/eslint-plugin-query": "^5.102.8",
     "@tanstack/router-plugin": "^1.168.38",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",

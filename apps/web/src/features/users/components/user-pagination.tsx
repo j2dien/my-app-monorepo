@@ -1,4 +1,5 @@
 import type { PageSize } from "@/features/users/api/user.types";
+import { USER_PAGE_SIZES } from "@/features/users/api/user.constants";
 
 interface UserPaginationProps {
   page: number;
@@ -37,13 +38,11 @@ export function UserPagination({
             }}
             className="rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-sm text-zinc-700 outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200"
           >
-            <option value={10}>10</option>
-
-            <option value={20}>20</option>
-
-            <option value={50}>50</option>
-
-            <option value={100}>100</option>
+            {USER_PAGE_SIZES.map((size) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
           </select>
         </label>
       </div>
