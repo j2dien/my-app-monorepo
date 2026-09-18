@@ -5,6 +5,7 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value";
 interface UserSearchInputProps {
   initialValue: string;
   currentSearch?: string;
+
   onSearchChange: (value: string | undefined) => void;
 }
 
@@ -17,28 +18,31 @@ export function UserSearchInput({
 
   const debouncedSearch = useDebouncedValue(searchValue, 400);
 
-  const lastSubmittedSearchRef = useRef(currentSearch);
+  /*
+   * Search yang sedang kita tunggu
+   * untuk dikonfirmasi oleh router.
+   *
+   * null = tidak ada navigation pending.
+   */
+  const pendingSearchRef = useRef<{
+    value: string | undefined;
+  } | null>(null);
 
   /*
-   * Local input -> URL
+   * Digunakan untuk mendeteksi apakah
+   * currentSearch benar-benar berubah
+   * dari router.
+   */
+  const previousSearchRef = useRef(currentSearch);
+
+  /*
+   * Local draft -> Router
    */
   useEffect(() => {
     /*
-     * Jangan submit nilai debounce lama.
-     *
-     * Ini penting ketika:
-     * - user masih mengetik
-     * - tombol Clear baru saja ditekan
+     * Jangan submit debounce lama.
      */
     if (debouncedSearch !== searchValue) {
-      return;
-    }
-
-    /*
-     * Kalau URL berubah dari luar,
-     * tunggu effect sinkronisasi di bawah.
-     */
-    if (currentSearch !== lastSubmittedSearchRef.current) {
       return;
     }
 
@@ -46,49 +50,83 @@ export function UserSearchInput({
 
     const nextSearch = normalized || undefined;
 
+    /*
+     * Router sudah memiliki nilai
+     * yang kita inginkan.
+     */
     if (nextSearch === currentSearch) {
       return;
     }
 
-    lastSubmittedSearchRef.current = nextSearch;
+    /*
+     * Navigation dengan nilai yang sama
+     * sudah sedang berlangsung.
+     */
+    if (pendingSearchRef.current?.value === nextSearch) {
+      return;
+    }
+
+    pendingSearchRef.current = {
+      value: nextSearch,
+    };
 
     onSearchChange(nextSearch);
   }, [debouncedSearch, searchValue, currentSearch, onSearchChange]);
 
   /*
-   * URL -> local input
+   * Router -> local draft
    *
-   * Dipakai untuk browser Back/Forward
-   * atau perubahan search dari luar component.
+   * Hanya jalan ketika currentSearch
+   * benar-benar berubah.
    */
   useEffect(() => {
-    if (currentSearch === lastSubmittedSearchRef.current) {
+    if (currentSearch === previousSearchRef.current) {
       return;
     }
 
-    lastSubmittedSearchRef.current = currentSearch;
+    previousSearchRef.current = currentSearch;
 
-    // oxlint-disable-next-line react/set-state-in-effect -- Sync local draft with router navigation.
+    /*
+     * Kalau ini adalah acknowledgement
+     * dari navigation yang kita submit
+     * sendiri, local state tidak perlu
+     * diubah.
+     */
+    if (
+      pendingSearchRef.current &&
+      pendingSearchRef.current.value === currentSearch
+    ) {
+      pendingSearchRef.current = null;
+
+      return;
+    }
+
+    /*
+     * Kalau nilainya berbeda dari pending
+     * request, berarti URL berubah dari luar:
+     *
+     * - browser Back
+     * - browser Forward
+     * - Clear dari parent
+     */
+    pendingSearchRef.current = null;
+
+    // oxlint-disable-next-line react/set-state-in-effect -- Sync local draft with external router navigation.
     setSearchValue(currentSearch ?? "");
   }, [currentSearch]);
 
   function handleClear() {
-    /*
-     * Input langsung kosong tanpa menunggu debounce.
-     */
     setSearchValue("");
 
-    /*
-     * Tandai nilai URL yang sedang kita submit.
-     */
-    lastSubmittedSearchRef.current = undefined;
-
-    /*
-     * URL langsung dibersihkan.
-     */
-    if (currentSearch !== undefined) {
-      onSearchChange(undefined);
+    if (currentSearch === undefined) {
+      return;
     }
+
+    pendingSearchRef.current = {
+      value: undefined,
+    };
+
+    onSearchChange(undefined);
   }
 
   return (

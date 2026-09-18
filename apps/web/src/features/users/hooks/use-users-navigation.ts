@@ -1,3 +1,5 @@
+import { useCallback } from "react";
+
 import { useNavigate } from "@tanstack/react-router";
 
 import type {
@@ -11,17 +13,20 @@ export function useUsersNavigation() {
     from: "/users",
   });
 
-  function handleSearchChange(search: string | undefined) {
-    void navigate({
-      replace: true,
+  const handleSearchChange = useCallback(
+    (searchValue: string | undefined) => {
+      void navigate({
+        replace: true,
 
-      search: (previous) => ({
-        ...previous,
-        page: 1,
-        search,
-      }),
-    });
-  }
+        search: (previous) => ({
+          ...previous,
+          page: 1,
+          search: searchValue,
+        }),
+      });
+    },
+    [navigate],
+  );
 
   function handleClearSearch() {
     handleSearchChange(undefined);
