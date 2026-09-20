@@ -10,26 +10,32 @@ import {
   createUserService,
 } from '../../../modules/users/user.service'
 
-const findAll = mock()
+const findMany = mock()
 const findById = mock()
 const findByEmail = mock()
 const create = mock()
+const update = mock()
+const deleteUser = mock()
 
 const repository = {
-  findAll,
+  findMany,
   findById,
   findByEmail,
   create,
+  update,
+  delete: deleteUser,
 }
 
 const userService =
   createUserService(repository)
 
 beforeEach(() => {
-  findAll.mockClear()
+  findMany.mockClear()
   findById.mockClear()
   findByEmail.mockClear()
   create.mockClear()
+  update.mockClear()
+  deleteUser.mockClear()
 })
 
 describe('userService', () => {

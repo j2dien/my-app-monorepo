@@ -75,7 +75,7 @@ describe('userRepository integration', () => {
         })
     })
 
-    test('returns all users', async () => {
+    test('returns users with total', async () => {
         await userRepository.create({
             name: 'John Doe',
             email: 'john@example.com',
@@ -86,10 +86,16 @@ describe('userRepository integration', () => {
             email: 'jane@example.com',
         })
 
-        const users =
-            await userRepository.findAll()
+        const result =
+            await userRepository.findMany({
+                page: 1,
+                pageSize: 20,
+                sortBy: 'createdAt',
+                sortOrder: 'desc',
+            })
 
-        expect(users).toHaveLength(2)
+        expect(result.items).toHaveLength(2)
+        expect(result.total).toBe(2)
     })
 
     test('rejects duplicate email', async () => {
