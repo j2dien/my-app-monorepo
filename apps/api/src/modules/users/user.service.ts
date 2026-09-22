@@ -65,24 +65,74 @@ export function createUserService(repository: UserRepository) {
       }
     },
 
-    async updateUser(id: string, input: UpdateUserInput) {
-      try {
-        const user = await repository.update(id, input);
-
-        if (!user) {
-          throw new AppError("USER_NOT_FOUND", "User not found", 404);
-        }
-
-        return user;
-      } catch (error) {
-        if (isPostgresUniqueViolation(error)) {
+    async updateUser(
+      userId: string,
+      input: UpdateUserInput,
+    ) {
+      const existingUser =
+        await repository.findById(
+          userId,
+        );
+    
+      if (!existingUser) {
+        throw new AppError(
+          "USER_NOT_FOUND",
+          "User not found",
+          404,
+        );
+      }
+    
+      if (
+        input.email &&
+        input.email !== existingUser.email
+      ) {
+        const userWithEmail =
+          await repository.findByEmail(
+            input.email,
+          );
+    
+        if (
+          userWithEmail &&
+          userWithEmail.id !== userId
+        ) {
           throw new AppError(
             "EMAIL_ALREADY_EXISTS",
             "Email already registered",
             409,
+            {
+              fields: {
+                email:
+                  "Email already registered",
+              },
+            },
           );
         }
-
+      }
+    
+      try {
+        return await repository.update(
+          userId,
+          input,
+        );
+      } catch (error) {
+        if (
+          isPostgresUniqueViolation(
+            error,
+          )
+        ) {
+          throw new AppError(
+            "EMAIL_ALREADY_EXISTS",
+            "Email already registered",
+            409,
+            {
+              fields: {
+                email:
+                  "Email already registered",
+              },
+            },
+          );
+        }
+    
         throw error;
       }
     },

@@ -104,7 +104,7 @@ describe('userRepository integration', () => {
             email: 'john@example.com',
         })
 
-        await expect(
+       expect(
             userRepository.create({
                 name: 'Another John',
                 email: 'john@example.com',
