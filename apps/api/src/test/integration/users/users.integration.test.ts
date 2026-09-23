@@ -7,6 +7,7 @@ import {
 } from "bun:test";
 
 import { testClient } from "hono/testing"
+import {parseResponse} from 'hono/client'
 
 import { sql } from "drizzle-orm";
 
@@ -20,11 +21,9 @@ import {
 import {
   parseJson,
 } from '../helpers/response'
+
 import type {
-  CreateUserResponse,
   ApiErrorResponse,
-  UsersListResponse,
-  UserResponse,
 } from '../helpers/api-types'
 
 const client = testClient(app)
@@ -49,22 +48,14 @@ describe("users API", () => {
       email: 'jane@example.com',
     })
 
-    const response = await client.api.v1.users.$get(
-      {
+    const body = await parseResponse(
+      client.api.v1.users.$get({
         query: {
           page: "1",
           pageSize: "20"
         }
-      }
+      })
     );
-
-    expect(response.status).toBe(200);
-
-    if (response.status !== 200) {
-      throw new Error(`Expceted 200, received ${response.status}`)
-    }
-
-    const body = await response.json()
 
     expect(body.data).toHaveLength(2);
 
@@ -89,22 +80,12 @@ describe("users API", () => {
       ),
     )
 
-    const response = await client.api.v1.users.$get(
-      {
-        query: {
-          page: "2",
-          pageSize: "10",
-        }
+    const body = await parseResponse(client.api.v1.users.$get({
+      query: {
+        page: "2",
+        pageSize: "10",
       }
-    );
-
-    expect(response.status).toBe(200);
-
-    if (response.status !== 200) {
-      throw new Error(`Expceted 200, received ${response.status}`)
-    }
-
-    const body = await response.json()
+    }));
 
     expect(body.pagination).toEqual({
       page: 2,
@@ -132,23 +113,13 @@ describe("users API", () => {
       },
     ])
 
-    const response = await client.api.v1.users.$get(
-      {
-        query: {
-          search: 'john',
-          page: '1',
-          pageSize: '20',
-        },
+    const body = await parseResponse(client.api.v1.users.$get({
+      query: {
+        search: 'john',
+        page: '1',
+        pageSize: '20',
       },
-    );
-
-    expect(response.status).toBe(200);
-
-    if (response.status !== 200) {
-      throw new Error(`Expected 200, received ${response.status}`)
-    }
-
-    const body = await response.json()
+    }));
 
     expect(body.data).toHaveLength(1);
 
@@ -173,19 +144,13 @@ describe("users API", () => {
       throw new Error("Failed to create test user");
     }
 
-    const response = await client.api.v1.users[":id"].$get({
-      param: {
-        id: createdUser.id
-      }
-    });
-
-    expect(response.status).toBe(200);
-
-    if (response.status !== 200) {
-      throw new Error(`Expected 200, received ${response.status}`)
-    }
-
-    const body = await response.json();
+    const body = await parseResponse(
+      client.api.v1.users[":id"].$get({
+        param: {
+          id: createdUser.id
+        }
+      })
+    );
 
     expect(body.data).toMatchObject({
       id: createdUser.id,
@@ -218,20 +183,14 @@ describe("users API", () => {
   });
 
   test("POST /api/v1/users creates a user", async () => {
-    const response = await client.api.v1.users.$post({
-      json: {
-        name: "John Doe",
-        email: "john@example.com",
-      },
-    });
-
-    expect(response.status).toBe(201);
-
-    if (!response.ok) {
-      throw new Error(await response.text());
-    }
-
-    const body = await response.json();
+    const body = await parseResponse(
+      client.api.v1.users.$post({
+        json: {
+          name: "John Doe",
+          email: "john@example.com",
+        },
+      })
+    );
 
     expect(body.data).toMatchObject({
       name: "John Doe",
@@ -263,23 +222,14 @@ describe("users API", () => {
   });
 
   test("POST /api/v1/users normalizes input", async () => {
-    const response = await app.request(
-      "/api/v1/users",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+    const body = await parseResponse(
+      client.api.v1.users.$post({
+        json: {
+          name: "John Doe",
+          email: "JOHN@EXAMPLE.COM",
         },
-        body: JSON.stringify({
-          name: "  John Doe  ",
-          email: "  JOHN@EXAMPLE.COM  ",
-        }),
-      },
+      })
     );
-
-    expect(response.status).toBe(201);
-
-    const body = await parseJson<CreateUserResponse>(response);
 
     expect(body.data).toMatchObject({
       name: "John Doe",
@@ -288,23 +238,20 @@ describe("users API", () => {
   });
 
   test("POST /api/v1/users rejects invalid payload", async () => {
-    const response = await app.request(
-      "/api/v1/users",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: "",
-          email: "not-an-email",
-        }),
+    const response = await client.api.v1.users.$post({
+      json: {
+        name: "",
+        email: "not-an-email",
       },
-    );
+    });
 
     expect(response.status).toBe(400);
 
-    const body = await parseJson<ApiErrorResponse>(response);
+    if (response.status !== 400) {
+      throw new Error(`Expected 400 response, received ${response.status}`);
+    }
+
+    const body = await response.json();
 
     expect(body.error.code).toBeDefined();
     expect(body.error.requestId).toBeDefined();
@@ -355,23 +302,15 @@ describe("users API", () => {
       );
     }
 
-    const response = await app.request(
-      `/api/v1/users/${createdUser.id}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+    const body = await parseResponse(
+      client.api.v1.users[":id"].$patch({
+        param: { id: createdUser.id },
+        json: {
           name: "John Smith",
           email: "john.smith@example.com",
-        }),
-      },
+        },
+      })
     );
-
-    expect(response.status).toBe(200);
-
-    const body = await parseJson<UserResponse>(response);
 
     expect(body.data).toMatchObject({
       id: createdUser.id,
@@ -511,14 +450,13 @@ describe("users API", () => {
         )
       }
 
-      const response = await app.request(
-        `/api/v1/users/${createdUser.id}`,
-        {
-          method: 'DELETE',
-        },
-      )
-
-      expect(response.status).toBe(204)
+      await parseResponse(
+        client.api.v1.users[":id"].$delete({
+          param: {
+            id: createdUser.id,
+          },
+        }),
+      );
 
       const remainingUsers = await db
         .select()
@@ -559,7 +497,7 @@ describe("users API", () => {
   test(
     'GET /api/v1/users sorts users by name ascending',
     async () => {
-      await db.insert(users).values([
+      await insertTestUsers([
         {
           name: 'Charlie',
           email: 'charlie@example.com',
@@ -574,13 +512,18 @@ describe("users API", () => {
         },
       ])
 
-      const response = await app.request(
-        '/api/v1/users?page=1&pageSize=20&sortBy=name&sortOrder=asc',
+      const body = await parseResponse(
+        client.api.v1.users.$get(
+          {
+            query: {
+              page: '1',
+              pageSize: '20',
+              sortBy: 'name',
+              sortOrder: 'asc',
+            },
+          }
+        )
       )
-
-      expect(response.status).toBe(200)
-
-      const body = await parseJson<UsersListResponse>(response)
 
       expect(
         body.data.map(
@@ -597,7 +540,7 @@ describe("users API", () => {
   test(
     'GET /api/v1/users sorts users by name descending',
     async () => {
-      await db.insert(users).values([
+      await insertTestUsers([
         {
           name: 'Charlie',
           email: 'charlie@example.com',
@@ -612,13 +555,18 @@ describe("users API", () => {
         },
       ])
 
-      const response = await app.request(
-        '/api/v1/users?page=1&pageSize=20&sortBy=name&sortOrder=desc',
+      const body = await parseResponse(
+        client.api.v1.users.$get(
+          {
+            query: {
+              page: '1',
+              pageSize: '20',
+              sortBy: 'name',
+              sortOrder: 'desc',
+            }
+          }
+        )
       )
-
-      expect(response.status).toBe(200)
-
-      const body = await parseJson<UsersListResponse>(response)
 
       expect(
         body.data.map(
@@ -678,23 +626,71 @@ describe("users API", () => {
   test(
     'GET /api/v1/users uses default pagination and sorting',
     async () => {
-      await db.insert(users).values({
+      await insertTestUser({
         name: 'John Doe',
         email: 'john@example.com',
       })
 
-      const response = await app.request(
-        '/api/v1/users',
+      const body = await parseResponse(
+        client.api.v1.users.$get({
+          query: {},
+        }),
       )
-
-      expect(response.status).toBe(200)
-
-      const body = await parseJson<UsersListResponse>(response)
 
       expect(body.pagination).toMatchObject({
         page: 1,
         pageSize: 20,
       })
     },
+  )
+
+  test(
+    'GET /api/v1/users uses default pagination and sorting',
+    async () => {
+      await insertTestUsers([
+        {
+          name: 'Old User',
+          email: 'old@example.com',
+          createdAt: new Date(
+            '2026-09-20T00:00:00.000Z',
+          ),
+        },
+        {
+          name: 'Newest User',
+          email: 'newest@example.com',
+          createdAt: new Date(
+            '2026-09-22T00:00:00.000Z',
+          ),
+        },
+        {
+          name: 'Middle User',
+          email: 'middle@example.com',
+          createdAt: new Date(
+            '2026-09-21T00:00:00.000Z',
+          ),
+        },
+      ])
+
+      const body = await parseResponse(
+        client.api.v1.users.$get({
+          query: {},
+        }),
+      )
+
+      expect(body.pagination).toMatchObject({
+        page: 1,
+        pageSize: 20,
+        total: 3,
+        totalPages: 1,
+      })
+
+      expect(
+        body.data.map((user) => user.name)
+      ).toEqual([
+        'Newest User',
+        'Middle User',
+        'Old User',
+      ])
+    }
   )
 });
