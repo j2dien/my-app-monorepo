@@ -38,15 +38,16 @@ describe("users API", () => {
   });
 
   test("GET /api/v1/users returns paginated users", async () => {
-    await insertTestUser({
-      name: 'John Doe',
-      email: 'john@example.com',
-    })
-
-    await insertTestUser({
-      name: 'Jane Doe',
-      email: 'jane@example.com',
-    })
+    await insertTestUsers([
+      {
+        name: 'John Doe',
+        email: 'john@example.com',
+      },
+      {
+        name: 'Jane Doe',
+        email: 'jane@example.com',
+      },
+    ])
 
     const body = await parseResponse(
       client.api.v1.users.$get({
@@ -182,15 +183,16 @@ describe("users API", () => {
     expect(body.error.requestId).toBeDefined();
   });
 
-  test("POST /api/v1/users creates a user", async () => {
-    const body = await parseResponse(
-      client.api.v1.users.$post({
-        json: {
-          name: "John Doe",
-          email: "john@example.com",
-        },
-      })
-    );
+  test("POST /api/v1/users creates a user",
+    async () => {
+      const body = await parseResponse(
+        client.api.v1.users.$post({
+          json: {
+            name: "John Doe",
+            email: "john@example.com",
+          },
+        }),
+      );
 
     expect(body.data).toMatchObject({
       name: "John Doe",
@@ -221,222 +223,280 @@ describe("users API", () => {
     });
   });
 
-  test("POST /api/v1/users normalizes input", async () => {
-    const body = await parseResponse(
-      client.api.v1.users.$post({
-        json: {
-          name: "John Doe",
-          email: "JOHN@EXAMPLE.COM",
-        },
-      })
-    );
-
-    expect(body.data).toMatchObject({
-      name: "John Doe",
-      email: "john@example.com",
-    });
-  });
-
-  test("POST /api/v1/users rejects invalid payload", async () => {
-    const response = await client.api.v1.users.$post({
-      json: {
-        name: "",
-        email: "not-an-email",
-      },
-    });
-
-    expect(response.status).toBe(400);
-
-    if (response.status !== 400) {
-      throw new Error(`Expected 400 response, received ${response.status}`);
-    }
-
-    const body = await response.json();
-
-    expect(body.error.code).toBeDefined();
-    expect(body.error.requestId).toBeDefined();
-
-    expect(body.error.fields).toBeDefined();
-  });
-
-  test("POST /api/v1/users returns EMAIL_ALREADY_EXISTS for duplicate email", async () => {
-    await db.insert(users).values({
-      name: "Existing User",
-      email: "john@example.com",
-    });
-
-    const response = await app.request(
-      "/api/v1/users",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: "John Doe",
-          email: "john@example.com",
+  test(
+    'POST /api/v1/users normalizes input',
+    async () => {
+      const body = await parseResponse(
+        client.api.v1.users.$post({
+          json: {
+            name: '  John Doe  ',
+            email: '  JOHN@EXAMPLE.COM  ',
+          },
         }),
-      },
-    );
-
-    expect(response.status).toBe(409);
-
-    const body = await parseJson<ApiErrorResponse>(response);
-
-    expect(body.error).toMatchObject({
-      code: "EMAIL_ALREADY_EXISTS",
-      message: "Email already registered",
-    });
-
-    expect(body.error.requestId).toBeDefined();
-
-  });
-
-  test("PATCH /api/v1/users/:id updates a user", async () => {
-    const createdUser =
-      await insertTestUser()
-
-    if (!createdUser) {
-      throw new Error(
-        "Failed to create test user",
-      );
-    }
-
-    const body = await parseResponse(
-      client.api.v1.users[":id"].$patch({
-        param: { id: createdUser.id },
-        json: {
-          name: "John Smith",
-          email: "john.smith@example.com",
-        },
-      })
-    );
-
-    expect(body.data).toMatchObject({
-      id: createdUser.id,
-      name: "John Smith",
-      email: "john.smith@example.com",
-    });
-
-    const storedUsers = await db
-      .select()
-      .from(users);
-
-    expect(storedUsers).toHaveLength(1);
-
-    const [storedUser] = storedUsers;
-
-    if (!storedUser) {
-      throw new Error(
-        "Expected updated user in database",
-      );
-    }
-
-    expect(storedUser).toMatchObject({
-      id: createdUser.id,
-      name: "John Smith",
-      email: "john.smith@example.com",
-    });
-  });
-
-  test("PATCH /api/v1/users/:id returns EMAIL_ALREADY_EXISTS for duplicate email", async () => {
-    const john =
-      await insertTestUser({
+      )
+  
+      expect(body.data).toMatchObject({
         name: 'John Doe',
         email: 'john@example.com',
       })
+  
+      const storedUsers = await db
+        .select()
+        .from(users)
+  
+      expect(storedUsers).toHaveLength(1)
+  
+      const [storedUser] = storedUsers
+  
+      if (!storedUser) {
+        throw new Error(
+          'Expected created user in database',
+        )
+      }
+  
+      expect(storedUser).toMatchObject({
+        name: 'John Doe',
+        email: 'john@example.com',
+      })
+    },
+  )
 
-    await insertTestUser({
-      name: 'Jane Doe',
-      email: 'jane@example.com',
-    })
-
-    if (!john) {
-      throw new Error(
-        "Failed to create John test user",
-      );
-    }
-
-    const response = await app.request(
-      `/api/v1/users/${john.id}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
+  test(
+    'POST /api/v1/users rejects invalid payload',
+    async () => {
+      const response = await app.request(
+        '/api/v1/users',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: '',
+            email: 'not-an-email',
+          }),
         },
-        body: JSON.stringify({
-          name: "John Doe",
-          email: "jane@example.com",
-        }),
-      },
-    );
+      )
+  
+      expect(response.status).toBe(400)
+  
+      const body =
+        await parseJson<ApiErrorResponse>(
+          response,
+        )
+  
+      expect(
+        body.error.code,
+      ).toBeDefined()
+  
+      expect(
+        body.error.requestId,
+      ).toBeDefined()
+  
+      const storedUsers = await db
+        .select()
+        .from(users)
+  
+      expect(storedUsers).toHaveLength(0)
+    },
+  )
 
-    expect(response.status).toBe(409);
-
-    const body = await parseJson<ApiErrorResponse>(response);
-
-    expect(body.error).toMatchObject({
-      code: "EMAIL_ALREADY_EXISTS",
-      message: "Email already registered",
-    });
-
-    expect(
-      body.error.requestId,
-    ).toBeDefined();
-
-    const storedUsers = await db
-      .select()
-      .from(users);
-
-    const storedJohn =
-      storedUsers.find(
-        (user) =>
-          user.id === john.id,
-      );
-
-    if (!storedJohn) {
-      throw new Error(
-        "Expected John to remain in database",
-      );
-    }
-
-    expect(storedJohn).toMatchObject({
-      name: "John Doe",
-      email: "john@example.com",
-    });
-  });
-
-  test("PATCH /api/v1/users/:id returns USER_NOT_FOUND", async () => {
-    const userId =
-      "11111111-1111-4111-8111-111111111111";
-
-    const response = await app.request(
-      `/api/v1/users/${userId}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
+  test(
+    'POST /api/v1/users returns EMAIL_ALREADY_EXISTS for duplicate email',
+    async () => {
+      await insertTestUser({
+        name: 'Existing User',
+        email: 'john@example.com',
+      })
+  
+      const response = await app.request(
+        '/api/v1/users',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: 'John Doe',
+            email: 'john@example.com',
+          }),
         },
-        body: JSON.stringify({
-          name: "John Smith",
-          email: "john.smith@example.com",
+      )
+  
+      expect(response.status).toBe(409)
+  
+      const body =
+        await parseJson<ApiErrorResponse>(
+          response,
+        )
+  
+      expect(body.error).toMatchObject({
+        code: 'EMAIL_ALREADY_EXISTS',
+        message: 'Email already registered',
+      })
+  
+      expect(
+        body.error.requestId,
+      ).toBeDefined()
+  
+      const storedUsers = await db
+        .select()
+        .from(users)
+  
+      expect(storedUsers).toHaveLength(1)
+    },
+  )
+
+  test(
+    'PATCH /api/v1/users/:id updates a user',
+    async () => {
+      const createdUser =
+        await insertTestUser({
+          name: 'John Doe',
+          email: 'john@example.com',
+        })
+  
+      const body = await parseResponse(
+        client.api.v1.users[':id'].$patch({
+          param: {
+            id: createdUser.id,
+          },
+          json: {
+            name: 'John Smith',
+            email: 'john.smith@example.com',
+          },
         }),
-      },
-    );
+      )
+  
+      expect(body.data).toMatchObject({
+        id: createdUser.id,
+        name: 'John Smith',
+        email: 'john.smith@example.com',
+      })
+  
+      const storedUsers = await db
+        .select()
+        .from(users)
+  
+      const storedUser =
+        storedUsers.find(
+          (user) =>
+            user.id === createdUser.id,
+        )
+  
+      if (!storedUser) {
+        throw new Error(
+          'Expected updated user in database',
+        )
+      }
+  
+      expect(storedUser).toMatchObject({
+        name: 'John Smith',
+        email: 'john.smith@example.com',
+      })
+    },
+  )
 
-    expect(response.status).toBe(404);
+  test(
+    'PATCH /api/v1/users/:id returns EMAIL_ALREADY_EXISTS for duplicate email',
+    async () => {
+      const john =
+        await insertTestUser({
+          name: 'John Doe',
+          email: 'john@example.com',
+        })
+  
+      await insertTestUser({
+        name: 'Jane Doe',
+        email: 'jane@example.com',
+      })
+  
+      const response = await app.request(
+        `/api/v1/users/${john.id}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type':
+              'application/json',
+          },
+          body: JSON.stringify({
+            name: 'John Doe',
+            email: 'jane@example.com',
+          }),
+        },
+      )
+  
+      expect(response.status).toBe(409)
+  
+      const body =
+        await parseJson<ApiErrorResponse>(
+          response,
+        )
+  
+      expect(body.error).toMatchObject({
+        code: 'EMAIL_ALREADY_EXISTS',
+        message:
+          'Email already registered',
+      })
+  
+      const storedUsers = await db
+        .select()
+        .from(users)
+  
+      const storedJohn =
+        storedUsers.find(
+          (user) =>
+            user.id === john.id,
+        )
+  
+      if (!storedJohn) {
+        throw new Error(
+          'Expected John to remain in database',
+        )
+      }
+  
+      expect(storedJohn).toMatchObject({
+        name: 'John Doe',
+        email: 'john@example.com',
+      })
+    },
+  )
 
-    const body = await parseJson<ApiErrorResponse>(response);
-
-    expect(body.error).toMatchObject({
-      code: "USER_NOT_FOUND",
-      message: "User not found",
-    });
-
-    expect(
-      body.error.requestId,
-    ).toBeDefined();
-  });
+  test(
+    'PATCH /api/v1/users/:id returns USER_NOT_FOUND',
+    async () => {
+      const userId =
+        '11111111-1111-4111-8111-111111111111'
+  
+      const response = await app.request(
+        `/api/v1/users/${userId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type':
+              'application/json',
+          },
+          body: JSON.stringify({
+            name: 'John Smith',
+            email:
+              'john.smith@example.com',
+          }),
+        },
+      )
+  
+      expect(response.status).toBe(404)
+  
+      const body =
+        await parseJson<ApiErrorResponse>(
+          response,
+        )
+  
+      expect(body.error).toMatchObject({
+        code: 'USER_NOT_FOUND',
+        message: 'User not found',
+      })
+    },
+  )
 
   test(
     'DELETE /api/v1/users/:id deletes a user',
