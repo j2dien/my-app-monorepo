@@ -24,3 +24,12 @@ export async function insertTestUser(
 
   return user
 }
+
+export async function insertTestUsers(
+  values: NewUser[],
+) {
+  return db
+    .insert(users)
+    .values(values)
+    .returning()
+}
