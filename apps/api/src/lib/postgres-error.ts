@@ -1,18 +1,29 @@
-// apps/api/src/lib/postgres-error.ts
-
-type PostgresErrorLike = {
-  code?: string;
-  constraint_name?: string;
-};
+const POSTGRES_UNIQUE_VIOLATION =
+  '23505'
 
 export function isPostgresUniqueViolation(
   error: unknown,
-): error is PostgresErrorLike {
-  if (typeof error !== "object" || error === null) {
-    return false;
+): boolean {
+  let current: unknown = error
+
+  while (
+    current &&
+    typeof current === 'object'
+  ) {
+    if (
+      'code' in current &&
+      current.code ===
+        POSTGRES_UNIQUE_VIOLATION
+    ) {
+      return true
+    }
+
+    if (!('cause' in current)) {
+      return false
+    }
+
+    current = current.cause
   }
 
-  const candidate = error as PostgresErrorLike;
-
-  return candidate.code === "23505";
+  return false
 }
