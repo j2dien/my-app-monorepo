@@ -11,7 +11,7 @@ import {
 } from "./user.schema";
 
 
-export function createUserRoutes(
+export function createUserRoute(
   userService: UserService
 ) {
   return new Hono()

@@ -1,12 +1,39 @@
-// test/unit/users/user.route.test.ts
-
 import {
+  beforeEach,
   describe,
   expect,
+  mock,
   test,
 } from 'bun:test'
 
-import { app } from '../../../../src/app'
+import { Hono } from 'hono'
+
+import { createUserRoute } from '../../../modules/users/user.route'
+
+import type { UserService } from '../../../modules/users/user.service'
+
+const getUsers =
+  mock<UserService["getUsers"]>();
+
+const getUser =
+  mock<UserService["getUser"]>();
+
+const createUser =
+  mock<UserService["createUser"]>();
+
+const updateUser =
+  mock<UserService["updateUser"]>();
+
+const deleteUser =
+  mock<UserService["deleteUser"]>();
+
+const userService: UserService = {
+  getUsers,
+  getUser,
+  createUser,
+  updateUser,
+  deleteUser,
+};
 
 type ValidationErrorBody = {
   error: {
@@ -14,6 +41,22 @@ type ValidationErrorBody = {
     fields: Record<string, string>
   }
 }
+
+const app =
+  new Hono().route(
+    "/api/v1/users",
+    createUserRoute(
+      userService,
+    ),
+  );
+
+beforeEach(() => {
+  getUsers.mockClear();
+  getUser.mockClear();
+  createUser.mockClear();
+  updateUser.mockClear();
+  deleteUser.mockClear();
+});
 
 describe('users route', () => {
   describe('GET /api/v1/users/:id', () => {

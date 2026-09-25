@@ -3,7 +3,7 @@ import {
 } from './user.repository'
 
 import {
-  createUserRoutes,
+  createUserRoute,
 } from './user.route'
 
 import {
@@ -13,4 +13,4 @@ import {
 export const userService =
   createUserService(userRepository)
 
-export const userRoutes = createUserRoutes(userService)
+export const userRoute = createUserRoute(userService)
