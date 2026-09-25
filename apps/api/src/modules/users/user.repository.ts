@@ -118,3 +118,5 @@ export const userRepository = {
     return user ?? null;
   },
 };
+
+export type UserRepository = typeof userRepository

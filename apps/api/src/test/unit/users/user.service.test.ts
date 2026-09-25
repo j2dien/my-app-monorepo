@@ -12,7 +12,7 @@ import {
 
 import type {
   UserRepository
-} from '../../../modules/users/user.service'
+} from '../../../modules/users/user.repository'
 
 import type { UsersQuery } from '@/modules/users/user.schema'
 

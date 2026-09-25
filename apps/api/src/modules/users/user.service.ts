@@ -1,7 +1,9 @@
 import { AppError } from "../../errors/app-error";
 import { isPostgresUniqueViolation } from "../../lib/postgres-error";
 
-import { userRepository } from "./user.repository";
+import type {
+  UserRepository,
+} from './user.repository'
 
 import type {
   CreateUserInput,
@@ -9,7 +11,6 @@ import type {
   UsersQuery,
 } from "./user.schema";
 
-export type UserRepository = typeof userRepository;
 
 export function createUserService(repository: UserRepository) {
   return {
@@ -146,5 +147,3 @@ export function createUserService(repository: UserRepository) {
     },
   };
 }
-
-export const userService = createUserService(userRepository);

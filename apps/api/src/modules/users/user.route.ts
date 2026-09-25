@@ -8,7 +8,7 @@ import {
   usersQuerySchema,
 } from "./user.schema";
 
-import { userService } from "./user.service";
+import { userService } from "./user.module";
 
 export const userRoute = new Hono()
   .get("/", validator("query", usersQuerySchema), async (c) => {
