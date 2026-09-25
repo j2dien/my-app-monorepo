@@ -40,7 +40,7 @@ jobs:
           typecheck
   
       - name: Test API unit
-        run: bun --filter './apps/api' test
+        run: bun --filter './apps/api' test:unit
   
       - name: Test web
         run: bun --filter './apps/web' test
@@ -83,11 +83,23 @@ jobs:
       - name: Install dependencies
         run: bun ci
   
-      - name: Run test database migrations
-        run: bun --cwd apps/api --no-env-file run db:migrate
+      - name: Inspect migrations
+        working-directory: apps/api
+        run: |
+          echo "Migration files:"
+          find drizzle -type f -print
+  
+          echo "Users migration:"
+          grep -R 'CREATE TABLE "users"' drizzle || true
+  
+      - name: Run migrations
+        working-directory: apps/api
+        run: bun --no-env-file run db:migrate
 
-      - name: Verify database schema
-        run: bun --cwd apps/api --no-env-file scripts/check-test-db.ts
+      - name: Verify migrated database
+        working-directory: apps/api
+        run: bun --no-env-file scripts/check-test-db.ts
   
       - name: Run integration tests
-        run: bun --cwd apps/api --no-env-file test src/test/integration
+        working-directory: apps/api
+        run: bun --no-env-file test src/test/integration
