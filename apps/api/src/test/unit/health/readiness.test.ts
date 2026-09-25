@@ -8,17 +8,18 @@ import {
 
 import { Hono } from "hono";
 
-beforeEach(() => {
-  execute.mockClear();
-});
+const execute = mock(
+  async () => [],
+);
 
-const execute = mock(async () => []);
-
-mock.module("../../../db", () => ({
-  db: {
-    execute,
-  },
-}));
+mock.module(
+  "../../../db",
+  () => ({
+    db: {
+      execute,
+    },
+  }),
+);
 
 const {
   readinessRoute,
@@ -26,17 +27,24 @@ const {
   "../../../modules/health/readiness.route"
 );
 
-const app = new Hono().route(
-  "/ready",
-  readinessRoute,
-);
+const app =
+  new Hono().route(
+    "/ready",
+    readinessRoute,
+  );
+
+beforeEach(() => {
+  execute.mockClear();
+});
 
 describe("GET /ready", () => {
   test(
     "returns database ready",
     async () => {
       const response =
-        await app.request("/ready");
+        await app.request(
+          "/ready",
+        );
 
       expect(
         response.status,
@@ -64,22 +72,27 @@ describe("GET /ready", () => {
           "Database unavailable",
         ),
       );
-  
+
       const response =
-        await app.request("/ready");
-  
+        await app.request(
+          "/ready",
+        );
+
       expect(
         response.status,
       ).toBe(503);
-  
+
       const body =
         (await response.json()) as {
           status: string;
         };
-  
+
       expect(
         body.status,
       ).toBe("not_ready");
+
+      expect(execute)
+        .toHaveBeenCalledTimes(1);
     },
   );
 });
