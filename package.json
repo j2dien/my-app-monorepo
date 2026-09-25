@@ -12,7 +12,7 @@
     "dev": "bun run --workspaces --parallel dev",
     "typecheck": "bun run --sequential --workspaces --if-present typecheck",
     "test:unit": "bun --filter ./apps/api test && bun --filter ./apps/web test",
-    "test:integration": "bun --filter ./apps/api test:integration",
+    "test:integration": "bun --env-file=apps/api/.env.test run --filter ./apps/api test:integration",
     "test": "bun run test:unit",
     "check": "bun run typecheck && bun run test:unit",
     "check:all": "bun run typecheck && bun run test:unit && bun run test:integration",
