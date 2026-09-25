@@ -1,4 +1,5 @@
 import {
+  beforeEach,
   describe,
   expect,
   mock,
@@ -6,6 +7,10 @@ import {
 } from "bun:test";
 
 import { Hono } from "hono";
+
+beforeEach(() => {
+  execute.mockClear();
+});
 
 const execute = mock(async () => []);
 
@@ -48,6 +53,33 @@ describe("GET /ready", () => {
 
       expect(execute)
         .toHaveBeenCalledTimes(1);
+    },
+  );
+
+  test(
+    "returns not ready when database check fails",
+    async () => {
+      execute.mockRejectedValueOnce(
+        new Error(
+          "Database unavailable",
+        ),
+      );
+  
+      const response =
+        await app.request("/ready");
+  
+      expect(
+        response.status,
+      ).toBe(503);
+  
+      const body =
+        (await response.json()) as {
+          status: string;
+        };
+  
+      expect(
+        body.status,
+      ).toBe("not_ready");
     },
   );
 });
