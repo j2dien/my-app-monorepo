@@ -1,24 +1,53 @@
-import { describe, expect, mock, test } from "bun:test";
+import {
+  describe,
+  expect,
+  mock,
+  test,
+} from "bun:test";
+
+import { Hono } from "hono";
 
 const execute = mock(async () => []);
 
 mock.module("../../../db", () => ({
-  db: { execute },
+  db: {
+    execute,
+  },
 }));
 
-const { app } = await import("../../../app");
+const {
+  readinessRoute,
+} = await import(
+  "../../../modules/health/readiness.route"
+);
 
-describe("GET /api/v1/ready", () => {
-  test("returns database ready", async () => {
-    const response = await app.request("/api/v1/ready");
+const app = new Hono().route(
+  "/ready",
+  readinessRoute,
+);
 
-    expect(response.status).toBe(200);
+describe("GET /ready", () => {
+  test(
+    "returns database ready",
+    async () => {
+      const response =
+        await app.request("/ready");
 
-    const body = (await response.json()) as {
-      status: string;
-    };
+      expect(
+        response.status,
+      ).toBe(200);
 
-    expect(body.status).toBe("ready");
-    expect(execute).toHaveBeenCalledTimes(1);
-  });
+      const body =
+        (await response.json()) as {
+          status: string;
+        };
+
+      expect(
+        body.status,
+      ).toBe("ready");
+
+      expect(execute)
+        .toHaveBeenCalledTimes(1);
+    },
+  );
 });
