@@ -144,6 +144,77 @@ test("clear is not overwritten by a stale debounced search", async () => {
   expect(submittedValues.at(-1)).toBeUndefined();
 });
 
+test("clears a search while its previous navigation is still pending", async () => {
+  const user = userEvent.setup();
+
+  const submittedValues: Array<string | undefined> = [];
+
+  function handleSearchChange(value: string | undefined) {
+    submittedValues.push(value);
+  }
+
+  const { rerender } = render(
+    <UserSearchInput
+      initialValue=""
+      currentSearch={undefined}
+      onSearchChange={handleSearchChange}
+    />,
+  );
+
+  const input = screen.getByRole("searchbox");
+
+  await user.type(input, "john");
+
+  await waitFor(
+    () => {
+      expect(submittedValues.at(-1)).toBe("john");
+    },
+    {
+      timeout: 1000,
+    },
+  );
+
+  /*
+   * Hapus draft sebelum router selesai
+   * mengonfirmasi search=john.
+   */
+  await user.clear(input);
+
+  await waitFor(
+    () => {
+      expect(submittedValues.at(-1)).toBeUndefined();
+    },
+    {
+      timeout: 1000,
+    },
+  );
+
+  /*
+   * Acknowledgement navigation lama tidak boleh
+   * mengembalikan nilai john ke input.
+   */
+  rerender(
+    <UserSearchInput
+      initialValue="john"
+      currentSearch="john"
+      onSearchChange={handleSearchChange}
+    />,
+  );
+
+  expect(input).toHaveValue("");
+
+  rerender(
+    <UserSearchInput
+      initialValue=""
+      currentSearch={undefined}
+      onSearchChange={handleSearchChange}
+    />,
+  );
+
+  expect(input).toHaveValue("");
+  expect(submittedValues.at(-1)).toBeUndefined();
+});
+
 test("trims search before submitting", async () => {
   const user = userEvent.setup();
 

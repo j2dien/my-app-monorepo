@@ -337,13 +337,10 @@ test("clears search and restores the full user list", async () => {
   expect(johnRequestIndex).toBeGreaterThanOrEqual(0);
 
   /*
-   * Clear search.
+   * Clear search dengan menghapus seluruh
+   * teks dari input.
    */
-  await user.click(
-    getByRole("button", {
-      name: "Clear",
-    }),
-  );
+  await user.clear(searchInput);
 
   /*
    * Full list harus kembali.

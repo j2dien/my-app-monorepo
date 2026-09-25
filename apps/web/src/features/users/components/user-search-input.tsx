@@ -51,18 +51,22 @@ export function UserSearchInput({
     const nextSearch = normalized || undefined;
 
     /*
-     * Router sudah memiliki nilai
-     * yang kita inginkan.
+     * Navigation dengan nilai yang sama
+     * sudah sedang berlangsung.
      */
-    if (nextSearch === currentSearch) {
+    if (
+      pendingSearchRef.current &&
+      pendingSearchRef.current.value === nextSearch
+    ) {
       return;
     }
 
     /*
-     * Navigation dengan nilai yang sama
-     * sudah sedang berlangsung.
+     * Router sudah memiliki nilai yang kita
+     * inginkan dan tidak ada navigation lama
+     * yang perlu dibatalkan.
      */
-    if (pendingSearchRef.current?.value === nextSearch) {
+    if (nextSearch === currentSearch && pendingSearchRef.current === null) {
       return;
     }
 
@@ -92,12 +96,16 @@ export function UserSearchInput({
      * sendiri, local state tidak perlu
      * diubah.
      */
-    if (
-      pendingSearchRef.current &&
-      pendingSearchRef.current.value === currentSearch
-    ) {
-      pendingSearchRef.current = null;
+    if (pendingSearchRef.current) {
+      if (pendingSearchRef.current.value === currentSearch) {
+        pendingSearchRef.current = null;
+      }
 
+      /*
+       * currentSearch yang berbeda dari pending
+       * dapat merupakan acknowledgement navigation
+       * lama. Draft terbaru tetap dipertahankan.
+       */
       return;
     }
 
@@ -109,8 +117,6 @@ export function UserSearchInput({
      * - browser Forward
      * - Clear dari parent
      */
-    pendingSearchRef.current = null;
-
     // oxlint-disable-next-line react/set-state-in-effect -- Sync local draft with external router navigation.
     setSearchValue(currentSearch ?? "");
   }, [currentSearch]);
@@ -118,7 +124,17 @@ export function UserSearchInput({
   function handleClear() {
     setSearchValue("");
 
-    if (currentSearch === undefined) {
+    if (
+      currentSearch === undefined &&
+      pendingSearchRef.current === null
+    ) {
+      return;
+    }
+
+    if (
+      pendingSearchRef.current &&
+      pendingSearchRef.current.value === undefined
+    ) {
       return;
     }
 
