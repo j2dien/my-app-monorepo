@@ -16,32 +16,32 @@ concurrency:
 
 jobs:
   quality:
-    name: Typecheck and tests
+    name: Typecheck and unit tests
     runs-on: ubuntu-latest
-
+  
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
-
+  
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.4.0
-
+  
       - name: Install dependencies
         run: bun ci
-
-      - name: Typecheck workspaces
+  
+      - name: Typecheck
         run: >
           bun run
           --sequential
           --workspaces
           --if-present
           typecheck
-
-      - name: Test API
+  
+      - name: Test API unit
         run: bun --filter './apps/api' test
-
+  
       - name: Test web
         run: bun --filter './apps/web' test
 
@@ -82,8 +82,8 @@ jobs:
   
       - name: Install dependencies
         run: bun ci
-  
-      - name: Show database target
+
+      - name: Show migration database
         run: |
           bun --no-env-file -e "
             const url = new URL(process.env.DATABASE_URL);
@@ -94,8 +94,8 @@ jobs:
             });
           "
   
-      - name: Run database migrations
+      - name: Run test database migrations
         run: bun --cwd apps/api --no-env-file run db:migrate
   
-      - name: Run API integration tests
+      - name: Run integration tests
         run: bun --cwd apps/api --no-env-file test src/test/integration
