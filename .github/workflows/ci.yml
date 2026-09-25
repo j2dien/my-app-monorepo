@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   quality:
-    name: Typecheck and unit tests
+    name: Quality
     runs-on: ubuntu-latest
   
     steps:
