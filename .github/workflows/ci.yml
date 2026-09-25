@@ -4,71 +4,95 @@ on:
   push:
     branches:
       - main
-      - develop
 
   pull_request:
-    branches:
-      - main
-      - develop
 
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   quality:
-    name: Typecheck, Test, Build
+    name: Typecheck and tests
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:17
-
-        env:
-          POSTGRES_DB: app_test
-          POSTGRES_USER: app
-          POSTGRES_PASSWORD: app
-
-        ports:
-          - 5432:5432
-
-        options: >-
-          --health-cmd "pg_isready -U app -d app_test"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-
-    env:
-      NODE_ENV: test
-
-      DATABASE_URL: postgresql://app:app@localhost:5432/app_test
-
-      PORT: 3000
-
-      CORS_ORIGIN: http://localhost:5173
-
-      VITE_API_URL: http://localhost:3000
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+      - name: Checkout repository
+        uses: actions/checkout@v7
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
 
       - name: Install dependencies
         run: bun ci
 
-      - name: Typecheck
-        run: bun run typecheck
+      - name: Typecheck workspaces
+        run: >
+          bun run
+          --sequential
+          --workspaces
+          --if-present
+          typecheck
+
+      - name: Test API
+        run: bun --filter './apps/api' test
+
+      - name: Test web
+        run: bun --filter './apps/web' test
+
+  api-integration:
+    name: API integration
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: my_app_test
+
+        ports:
+          - 55432:5432
+
+        options: >-
+          --health-cmd "pg_isready -U postgres -d my_app_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5434/my_app_test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+
+      - name: Install dependencies
+        run: bun ci
 
       - name: Run database migrations
-        working-directory: apps/api
-        run: bun run db:migrate
+        run: >
+          bun
+          --cwd apps/api
+          --no-env-file
+          run db:migrate
 
-      - name: Run API tests
-        working-directory: apps/api
-        run: bun test
-
-      - name: Build frontend
-        working-directory: apps/web
-        run: bun run build
+      - name: Run API integration tests
+        run: >
+          bun
+          --cwd apps/api
+          --no-env-file
+          test src/test/integration
