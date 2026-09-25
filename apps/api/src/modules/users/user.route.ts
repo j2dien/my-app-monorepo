@@ -1,5 +1,7 @@
 import { Hono } from "hono";
 
+import type { UserService } from "./user.service";
+
 import { validator } from "../../lib/validator";
 import {
   createUserSchema,
@@ -8,84 +10,87 @@ import {
   usersQuerySchema,
 } from "./user.schema";
 
-import { userService } from "./user.module";
 
-export const userRoute = new Hono()
-  .get("/", validator("query", usersQuerySchema), async (c) => {
-    const query = c.req.valid("query");
+export function createUserRoutes(
+  userService: UserService
+) {
+  return new Hono()
+    .get("/", validator("query", usersQuerySchema), async (c) => {
+      const query = c.req.valid("query");
 
-    const result = await userService.getUsers(query);
-
-    return c.json({
-      data: result.items,
-      pagination: result.pagination,
-    });
-  })
-
-  .get(
-    "/:id",
-
-    validator("param", userIdParamSchema),
-
-    async (c) => {
-      const { id } = c.req.valid("param");
-
-      const user = await userService.getUser(id);
+      const result = await userService.getUsers(query);
 
       return c.json({
-        data: user,
+        data: result.items,
+        pagination: result.pagination,
       });
-    },
-  )
+    })
 
-  .post(
-    "/",
+    .get(
+      "/:id",
 
-    validator("json", createUserSchema),
+      validator("param", userIdParamSchema),
 
-    async (c) => {
-      const input = c.req.valid("json");
+      async (c) => {
+        const { id } = c.req.valid("param");
 
-      const user = await userService.createUser(input);
+        const user = await userService.getUser(id);
 
-      return c.json(
-        {
+        return c.json({
           data: user,
-        },
-        201,
-      );
-    },
-  )
-  .patch(
-    "/:id",
+        });
+      },
+    )
 
-    validator("param", userIdParamSchema),
+    .post(
+      "/",
 
-    validator("json", updateUserSchema),
+      validator("json", createUserSchema),
 
-    async (c) => {
-      const { id } = c.req.valid("param");
+      async (c) => {
+        const input = c.req.valid("json");
 
-      const input = c.req.valid("json");
+        const user = await userService.createUser(input);
 
-      const user = await userService.updateUser(id, input);
+        return c.json(
+          {
+            data: user,
+          },
+          201,
+        );
+      },
+    )
+    .patch(
+      "/:id",
 
-      return c.json({
-        data: user,
-      });
-    },
-  )
+      validator("param", userIdParamSchema),
 
-  .delete(
-    "/:id",
+      validator("json", updateUserSchema),
 
-    validator("param", userIdParamSchema),
+      async (c) => {
+        const { id } = c.req.valid("param");
 
-    async (c) => {
-      const { id } = c.req.valid("param");
+        const input = c.req.valid("json");
 
-      await userService.deleteUser(id);
+        const user = await userService.updateUser(id, input);
 
-      return c.body(null, 204);
-    },
-  );
+        return c.json({
+          data: user,
+        });
+      },
+    )
+
+    .delete(
+      "/:id",
+
+      validator("param", userIdParamSchema),
+
+      async (c) => {
+        const { id } = c.req.valid("param");
+
+        await userService.deleteUser(id);
+
+        return c.body(null, 204);
+      },
+    )
+};

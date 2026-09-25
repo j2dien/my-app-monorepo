@@ -74,7 +74,7 @@ export function createUserService(repository: UserRepository) {
         await repository.findById(
           userId,
         );
-    
+
       if (!existingUser) {
         throw new AppError(
           "USER_NOT_FOUND",
@@ -82,7 +82,7 @@ export function createUserService(repository: UserRepository) {
           404,
         );
       }
-    
+
       if (
         input.email &&
         input.email !== existingUser.email
@@ -91,7 +91,7 @@ export function createUserService(repository: UserRepository) {
           await repository.findByEmail(
             input.email,
           );
-    
+
         if (
           userWithEmail &&
           userWithEmail.id !== userId
@@ -109,7 +109,7 @@ export function createUserService(repository: UserRepository) {
           );
         }
       }
-    
+
       try {
         return await repository.update(
           userId,
@@ -133,7 +133,7 @@ export function createUserService(repository: UserRepository) {
             },
           );
         }
-    
+
         throw error;
       }
     },
@@ -147,3 +147,5 @@ export function createUserService(repository: UserRepository) {
     },
   };
 }
+
+export type UserService = ReturnType<typeof createUserService>
