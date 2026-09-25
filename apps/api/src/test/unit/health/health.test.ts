@@ -13,7 +13,7 @@ const app = new Hono().route("/health", healthRoute)
 describe("GET /api/v1/health", () => {
   test("returns application health", async () => {
     const response = await app.request(
-      "/api/v1/health",
+      "/health",
     );
 
     expect(response.status).toBe(200);
