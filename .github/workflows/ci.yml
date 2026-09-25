@@ -45,6 +45,9 @@ jobs:
       - name: Test web
         run: bun --filter './apps/web' test
 
+      - name: Build web
+        run: bun --filter './apps/web' build
+
   api-integration:
     name: API integration
     runs-on: ubuntu-latest
