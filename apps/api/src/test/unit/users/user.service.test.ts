@@ -10,14 +10,20 @@ import {
   createUserService,
 } from '../../../modules/users/user.service'
 
-const findMany = mock()
-const findById = mock()
-const findByEmail = mock()
-const create = mock()
-const update = mock()
-const deleteUser = mock()
+import type {
+  UserRepository
+} from '../../../modules/users/user.service'
 
-const repository = {
+import type { UsersQuery } from '@/modules/users/user.schema'
+
+const findMany = mock<UserRepository['findMany']>()
+const findById = mock<UserRepository['findById']>()
+const findByEmail = mock<UserRepository['findByEmail']>()
+const create = mock<UserRepository['create']>()
+const update = mock<UserRepository['update']>()
+const deleteUser = mock<UserRepository['delete']>()
+
+const repository: UserRepository = {
   findMany,
   findById,
   findByEmail,
@@ -75,6 +81,85 @@ describe('userService', () => {
         })
       },
     )
+
+    test(
+      'returns users with pagination',
+      async () => {
+        const query: UsersQuery = {
+          page: 2,
+          pageSize: 10,
+          search: undefined,
+          sortBy: 'createdAt',
+          sortOrder: 'desc'
+        } as const
+
+        findMany.mockResolvedValue({
+          items: [
+            {
+              id: '1',
+              name: 'John',
+              email: 'john@example.com',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+            {
+              id: '2',
+              name: 'Jane',
+              email: 'jane@example.com',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+          ],
+          total: 25,
+        })
+
+        const result = await userService.getUsers(query)
+
+        expect(findMany).toHaveBeenCalledWith(query)
+
+        expect(result.items).toHaveLength(2)
+
+        expect(result.pagination)
+          .toEqual({
+            page: 2,
+            pageSize: 10,
+            total: 25,
+            totalPages: 3,
+          })
+      }
+    )
+
+    test(
+        'returns zero totalPages when there are no users',
+        async () => {
+          const query: UsersQuery = {
+            page: 1,
+            pageSize: 20,
+            search: undefined,
+            sortBy: 'createdAt',
+            sortOrder: 'desc',
+          } as const
+    
+          findMany.mockResolvedValue({
+            items: [],
+            total: 0,
+          })
+    
+          const result =
+            await userService.getUsers(query)
+    
+          expect(result.items)
+            .toEqual([])
+    
+          expect(result.pagination)
+            .toEqual({
+              page: 1,
+              pageSize: 20,
+              total: 0,
+              totalPages: 0,
+            })
+        },
+      )
   })
 
   describe('createUser', () => {
@@ -144,15 +229,15 @@ describe('userService', () => {
       'maps postgres unique violation to EMAIL_ALREADY_EXISTS',
       async () => {
         findByEmail.mockResolvedValue(null)
-    
+
         const postgresError = {
           code: '23505',
         }
-    
+
         create.mockRejectedValue(
           postgresError,
         )
-    
+
         expect(
           userService.createUser({
             name: 'John',
@@ -304,17 +389,17 @@ describe('userService', () => {
           createdAt: new Date(),
           updatedAt: new Date(),
         })
-    
+
         findByEmail.mockResolvedValue(null)
-    
+
         const postgresError = {
           code: '23505',
         }
-    
+
         update.mockRejectedValue(
           postgresError,
         )
-    
+
         expect(
           userService.updateUser(
             '1',
@@ -338,10 +423,6 @@ describe('userService', () => {
       async () => {
         deleteUser.mockResolvedValue({
           id: '1',
-          name: 'John',
-          email: 'john@example.com',
-          createdAt: new Date(),
-          updatedAt: new Date(),
         })
 
         await userService.deleteUser('1')

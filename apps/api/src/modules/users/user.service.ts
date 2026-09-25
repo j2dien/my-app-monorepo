@@ -9,7 +9,7 @@ import type {
   UsersQuery,
 } from "./user.schema";
 
-type UserRepository = typeof userRepository;
+export type UserRepository = typeof userRepository;
 
 export function createUserService(repository: UserRepository) {
   return {
