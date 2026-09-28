@@ -18,9 +18,10 @@
     "coverage:web": "bun run --cwd apps/web test:coverage",
     "coverage": "bun run coverage:api && bun run coverage:web",
     "test": "bun run test:unit",
-    "check": "bun run typecheck && bun run test:unit",
-    "check:all": "bun run typecheck && bun run test:unit && bun run test:integration",
+    "check": "bun run biome:check && bun run typecheck && bun run coverage && bun run build:web",
+    "check:all": "bun run check && bun run test:integration",
     "build": "bun run --workspaces build",
+    "build:web": "bun run --cwd apps/web build",
 
     "lint": "biome lint .",
     "format": "biome format --write .",
