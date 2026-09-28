@@ -7,7 +7,7 @@ export const Route = createFileRoute("/")({
 function HomePage() {
   return (
     <main>
-      <h1>My App</h1>
+      <h1>Welcome</h1>
 
       <p>React + TanStack Router + Hono</p>
     </main>

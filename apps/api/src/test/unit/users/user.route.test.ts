@@ -5,6 +5,7 @@ import { Hono } from "hono";
 import { createUserRoute } from "../../../modules/users/user.route";
 
 import type { UserService } from "../../../modules/users/user.service";
+import type { UsersListResponse } from "@/test/integration/helpers/api-types";
 
 const getUsers = mock<UserService["getUsers"]>();
 
@@ -15,6 +16,14 @@ const createUser = mock<UserService["createUser"]>();
 const updateUser = mock<UserService["updateUser"]>();
 
 const deleteUser = mock<UserService["deleteUser"]>();
+
+const user = {
+  id: "11111111-1111-4111-8111-111111111111",
+  name: "John Doe",
+  email: "john@example.com",
+  createdAt: new Date("2026-01-01T00:00:00.000Z"),
+  updatedAt: new Date("2026-01-01T00:00:00.000Z"),
+};
 
 const userService: UserService = {
   getUsers,
@@ -42,7 +51,57 @@ beforeEach(() => {
 });
 
 describe("users route", () => {
+  describe("GET /api/v1/users", () => {
+    test("returns users", async () => {
+      getUsers.mockResolvedValueOnce({
+        items: [user],
+        pagination: {
+          page: 1,
+          pageSize: 20,
+          total: 1,
+          totalPages: 1,
+        },
+      });
+
+      const response = await app.request(
+        "/api/v1/users?page=1&pageSize=20&sortBy=createdAt&sortOrder=desc",
+      );
+
+      expect(response.status).toBe(200);
+
+      expect(getUsers).toHaveBeenCalledWith({
+        page: 1,
+        pageSize: 20,
+        sortBy: "createdAt",
+        sortOrder: "desc",
+      });
+
+      const body = (await response.json()) as UsersListResponse;
+
+      expect(body.pagination).toEqual({
+        page: 1,
+        pageSize: 20,
+        total: 1,
+        totalPages: 1,
+      });
+    });
+  });
+
   describe("GET /api/v1/users/:id", () => {
+    test("returns user by id", async () => {
+        getUser.mockResolvedValueOnce(user);
+
+        const response = await app.request(
+          `/api/v1/users/${user.id}`,
+        );
+
+        expect(response.status).toBe(200);
+
+        expect(getUser).toHaveBeenCalledWith(
+          user.id,
+        );
+    });
+
     test("rejects invalid user id", async () => {
       const response = await app.request("/api/v1/users/not-a-uuid");
 
@@ -55,6 +114,31 @@ describe("users route", () => {
   });
 
   describe("POST /api/v1/users", () => {
+    test("creates a user", async () => {
+        createUser.mockResolvedValueOnce(user);
+
+        const response = await app.request(
+          "/api/v1/users",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              name: "John Doe",
+              email: "john@example.com",
+            }),
+          },
+        );
+
+        expect(response.status).toBe(201);
+
+        expect(createUser).toHaveBeenCalledWith({
+          name: "John Doe",
+          email: "john@example.com",
+        });
+    });
+
     test("rejects invalid create payload", async () => {
       const response = await app.request("/api/v1/users", {
         method: "POST",
@@ -81,6 +165,39 @@ describe("users route", () => {
   });
 
   describe("PATCH /api/v1/users/:id", () => {
+    test("updates a user", async () => {
+        const updatedUser = {
+          ...user,
+          name: "John Smith",
+        };
+    
+        updateUser.mockResolvedValueOnce(
+          updatedUser,
+        );
+    
+        const response = await app.request(
+          `/api/v1/users/${user.id}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              name: "John Smith",
+            }),
+          },
+        );
+    
+        expect(response.status).toBe(200);
+    
+        expect(updateUser).toHaveBeenCalledWith(
+          user.id,
+          {
+            name: "John Smith",
+          },
+        );
+    });
+    
     test("rejects invalid user id", async () => {
       const response = await app.request("/api/v1/users/not-a-uuid", {
         method: "PATCH",
@@ -115,6 +232,23 @@ describe("users route", () => {
   });
 
   describe("DELETE /api/v1/users/:id", () => {
+    test("deletes a user", async () => {
+        deleteUser.mockResolvedValueOnce(undefined);
+    
+        const response = await app.request(
+          `/api/v1/users/${user.id}`,
+          {
+            method: "DELETE",
+          },
+        );
+    
+        expect(response.status).toBe(204);
+    
+        expect(deleteUser).toHaveBeenCalledWith(
+          user.id,
+        );
+    });
+    
     test("rejects invalid user id", async () => {
       const response = await app.request("/api/v1/users/not-a-uuid", {
         method: "DELETE",

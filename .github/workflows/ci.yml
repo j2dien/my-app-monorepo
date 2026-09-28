@@ -42,11 +42,11 @@ jobs:
           --if-present
           typecheck
   
-      - name: Test API unit
-        run: bun --filter './apps/api' test:unit
+      - name: Test API unit with coverage
+        run: bun run --cwd apps/api test:coverage
   
-      - name: Test web
-        run: bun --filter './apps/web' test
+      - name: Test web with coverage
+        run: bun run --cwd apps/web test:coverage
 
       - name: Build web
         run: bun --filter './apps/web' build

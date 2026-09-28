@@ -3,3 +3,13 @@ preload = [
   "./src/test/happydom.ts",
   "./src/test/setup.ts"
 ]
+
+coveragePathIgnorePatterns = [
+  "src/test/**",
+  "src/routeTree.gen.ts"
+]
+
+coverageThreshold = {
+  lines = 0.8,
+  functions = 0.8
+}

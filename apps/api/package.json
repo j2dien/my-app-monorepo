@@ -13,6 +13,7 @@
     "test": "bun test src/test/unit",
     "test:unit": "bun test src/test/unit",
     "test:integration": "bun --env-file=.env.test test src/test/integration",
+    "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage src/test/unit",
 
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate --config=drizzle.config.ts",

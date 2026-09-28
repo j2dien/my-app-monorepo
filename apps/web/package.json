@@ -10,7 +10,8 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "VITE_API_URL=http://localhost:3000 bun test",
-    "test:watch": "bun test --watch"
+    "test:watch": "bun test --watch",
+    "test:coverage": "VITE_API_URL=http://localhost:3000 bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage"
   },
   "dependencies": {
     "@app/api": "workspace:*",
