@@ -8,19 +8,12 @@ export function parseFrontendEnv(input: unknown) {
   const parsed = envSchema.safeParse(input);
 
   if (!parsed.success) {
-    console.error(
-      "Invalid frontend environment",
-      parsed.error,
-    );
+    console.error("Invalid frontend environment", parsed.error);
 
-    throw new Error(
-      "Invalid frontend environment",
-    );
+    throw new Error("Invalid frontend environment");
   }
 
   return parsed.data;
 }
 
-export const env = parseFrontendEnv(
-  import.meta.env,
-);
+export const env = parseFrontendEnv(import.meta.env);

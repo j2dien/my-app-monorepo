@@ -1,22 +1,16 @@
-import {
-  describe,
-  expect,
-  test,
-} from "bun:test";
+import { describe, expect, test } from "bun:test";
 
-import {
-  renderRouter,
-} from "@/test/render-router";
+import { renderRouter } from "@/test/render-router";
 
 describe("index route", () => {
   test("renders the home page", async () => {
     const view = renderRouter({
-      initialEntry: "/"
+      initialEntry: "/",
     });
 
     expect(
       await view.findByRole("heading", {
-        name: "Welcome"
+        name: "Welcome",
       }),
     ).toBeInTheDocument();
   });

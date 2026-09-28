@@ -1,34 +1,13 @@
-import {
-  describe,
-  expect,
-  spyOn,
-  test,
-} from "bun:test";
+import { describe, expect, spyOn, test } from "bun:test";
 
-import {
-  QueryClientProvider,
-} from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 
-import {
-  renderHook,
-  waitFor,
-} from "@testing-library/react";
+import { renderHook, waitFor } from "@testing-library/react";
 
-import type {
-  PropsWithChildren,
-} from "react";
-
-import {
-  createTestQueryClient,
-} from "@/test/create-test-query-client";
-
-import {
-  usePrefetchNextUsersPage,
-} from "./use-prefetch-next-users-page";
-
-import type {
-  UsersQueryParams,
-} from "@/features/users/api/user.types";
+import type { PropsWithChildren } from "react";
+import type { UsersQueryParams } from "@/features/users/api/user.types";
+import { createTestQueryClient } from "@/test/create-test-query-client";
+import { usePrefetchNextUsersPage } from "./use-prefetch-next-users-page";
 
 const params: UsersQueryParams = {
   page: 1,
@@ -38,197 +17,118 @@ const params: UsersQueryParams = {
   sortOrder: "desc",
 };
 
-function createWrapper(
-  queryClient: ReturnType<
-    typeof createTestQueryClient
-  >,
-) {
-  return function Wrapper({
-    children,
-  }: PropsWithChildren) {
-    return (
-      <QueryClientProvider
-        client={queryClient}
-      >
-        {children}
-      </QueryClientProvider>
-    );
+function createWrapper(queryClient: ReturnType<typeof createTestQueryClient>) {
+  return function Wrapper({ children }: PropsWithChildren) {
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   };
 }
 
-describe(
-  "usePrefetchNextUsersPage",
-  () => {
-    test(
-      "prefetches the next page",
-      async () => {
-        const queryClient =
-          createTestQueryClient();
+describe("usePrefetchNextUsersPage", () => {
+  test("prefetches the next page", async () => {
+    const queryClient = createTestQueryClient();
 
-        const query = spyOn(
-          queryClient,
-          "query",
-        ).mockResolvedValue(
-          undefined,
-        );
+    const query = spyOn(queryClient, "query").mockResolvedValue(undefined);
 
-        renderHook(
-          () =>
-            usePrefetchNextUsersPage({
-              params,
-              page: 1,
-              totalPages: 3,
-            }),
-          {
-            wrapper:
-              createWrapper(
-                queryClient,
-              ),
-          },
-        );
-
-        await waitFor(() => {
-          expect(query)
-            .toHaveBeenCalledTimes(1);
-        });
+    renderHook(
+      () =>
+        usePrefetchNextUsersPage({
+          params,
+          page: 1,
+          totalPages: 3,
+        }),
+      {
+        wrapper: createWrapper(queryClient),
       },
     );
 
-    test(
-      "does not prefetch when page is undefined",
-      () => {
-        const queryClient =
-          createTestQueryClient();
+    await waitFor(() => {
+      expect(query).toHaveBeenCalledTimes(1);
+    });
+  });
 
-        const query = spyOn(
-          queryClient,
-          "query",
-        );
+  test("does not prefetch when page is undefined", () => {
+    const queryClient = createTestQueryClient();
 
-        renderHook(
-          () =>
-            usePrefetchNextUsersPage({
-              params,
-              page: undefined,
-              totalPages: 3,
-            }),
-          {
-            wrapper:
-              createWrapper(
-                queryClient,
-              ),
-          },
-        );
+    const query = spyOn(queryClient, "query");
 
-        expect(query)
-          .not
-          .toHaveBeenCalled();
+    renderHook(
+      () =>
+        usePrefetchNextUsersPage({
+          params,
+          page: undefined,
+          totalPages: 3,
+        }),
+      {
+        wrapper: createWrapper(queryClient),
       },
     );
 
-    test(
-      "does not prefetch when totalPages is undefined",
-      () => {
-        const queryClient =
-          createTestQueryClient();
+    expect(query).not.toHaveBeenCalled();
+  });
 
-        const query = spyOn(
-          queryClient,
-          "query",
-        );
+  test("does not prefetch when totalPages is undefined", () => {
+    const queryClient = createTestQueryClient();
 
-        renderHook(
-          () =>
-            usePrefetchNextUsersPage({
-              params,
-              page: 1,
-              totalPages: undefined,
-            }),
-          {
-            wrapper:
-              createWrapper(
-                queryClient,
-              ),
-          },
-        );
+    const query = spyOn(queryClient, "query");
 
-        expect(query)
-          .not
-          .toHaveBeenCalled();
+    renderHook(
+      () =>
+        usePrefetchNextUsersPage({
+          params,
+          page: 1,
+          totalPages: undefined,
+        }),
+      {
+        wrapper: createWrapper(queryClient),
       },
     );
 
-    test(
-      "does not prefetch on the last page",
-      () => {
-        const queryClient =
-          createTestQueryClient();
+    expect(query).not.toHaveBeenCalled();
+  });
 
-        const query = spyOn(
-          queryClient,
-          "query",
-        );
+  test("does not prefetch on the last page", () => {
+    const queryClient = createTestQueryClient();
 
-        renderHook(
-          () =>
-            usePrefetchNextUsersPage({
-              params,
-              page: 3,
-              totalPages: 3,
-            }),
-          {
-            wrapper:
-              createWrapper(
-                queryClient,
-              ),
-          },
-        );
+    const query = spyOn(queryClient, "query");
 
-        expect(query)
-          .not
-          .toHaveBeenCalled();
+    renderHook(
+      () =>
+        usePrefetchNextUsersPage({
+          params,
+          page: 3,
+          totalPages: 3,
+        }),
+      {
+        wrapper: createWrapper(queryClient),
       },
     );
 
-    test(
-      "ignores prefetch errors",
-      async () => {
-        const queryClient =
-          createTestQueryClient();
+    expect(query).not.toHaveBeenCalled();
+  });
 
-        const query = spyOn(
-          queryClient,
-          "query",
-        ).mockRejectedValue(
-          new Error(
-            "Prefetch failed",
-          ),
-        );
+  test("ignores prefetch errors", async () => {
+    const queryClient = createTestQueryClient();
 
-        renderHook(
-          () =>
-            usePrefetchNextUsersPage({
-              params,
-              page: 1,
-              totalPages: 3,
-            }),
-          {
-            wrapper:
-              createWrapper(
-                queryClient,
-              ),
-          },
-        );
+    const query = spyOn(queryClient, "query").mockRejectedValue(new Error("Prefetch failed"));
 
-        await waitFor(() => {
-          expect(query)
-            .toHaveBeenCalledTimes(1);
-        });
-
-        // Memberi microtask .catch() kesempatan
-        // untuk dieksekusi.
-        await Promise.resolve();
+    renderHook(
+      () =>
+        usePrefetchNextUsersPage({
+          params,
+          page: 1,
+          totalPages: 3,
+        }),
+      {
+        wrapper: createWrapper(queryClient),
       },
     );
-  },
-);
+
+    await waitFor(() => {
+      expect(query).toHaveBeenCalledTimes(1);
+    });
+
+    // Memberi microtask .catch() kesempatan
+    // untuk dieksekusi.
+    await Promise.resolve();
+  });
+});
