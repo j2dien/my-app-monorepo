@@ -19,6 +19,14 @@ export function TextField({
 
   const clientErrors = field.state.meta.errors;
 
+  const clientErrorMessages = [
+    ...new Set(
+      clientErrors.map((error) =>
+        typeof error === "string" ? error : (error?.message ?? "Invalid value"),
+      ),
+    ),
+  ];
+
   const hasClientError = !field.state.meta.isValid;
 
   const hasError = hasClientError || Boolean(serverError);
@@ -52,17 +60,15 @@ export function TextField({
 
       {hasClientError && (
         <div className="mt-1 space-y-1">
-          {clientErrors.map((error, index) => (
-            <p key={index} className="text-sm text-red-600">
-              {typeof error === "string" ? error : error?.message}
+          {clientErrorMessages.map((message) => (
+            <p key={message} className="text-sm text-red-600">
+              {message}
             </p>
           ))}
         </div>
       )}
 
-      {!hasClientError && serverError && (
-        <p className="mt-1 text-sm text-red-600">{serverError}</p>
-      )}
+      {!hasClientError && serverError && <p className="mt-1 text-sm text-red-600">{serverError}</p>}
     </div>
   );
 }

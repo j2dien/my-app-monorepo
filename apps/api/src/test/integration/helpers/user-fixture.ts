@@ -1,35 +1,25 @@
-import { db } from '../../../db'
-import { users } from '../../../db/schema/users'
+import { db } from "../../../db";
+import { users } from "../../../db/schema/users";
 
-type NewUser =
-  typeof users.$inferInsert
+type NewUser = typeof users.$inferInsert;
 
-export async function insertTestUser(
-  overrides: Partial<NewUser> = {},
-) {
+export async function insertTestUser(overrides: Partial<NewUser> = {}) {
   const [user] = await db
     .insert(users)
     .values({
-      name: 'John Doe',
-      email: 'john@example.com',
+      name: "John Doe",
+      email: "john@example.com",
       ...overrides,
     })
-    .returning()
+    .returning();
 
   if (!user) {
-    throw new Error(
-      'Failed to create test user',
-    )
+    throw new Error("Failed to create test user");
   }
 
-  return user
+  return user;
 }
 
-export async function insertTestUsers(
-  values: NewUser[],
-) {
-  return db
-    .insert(users)
-    .values(values)
-    .returning()
+export async function insertTestUsers(values: NewUser[]) {
+  return db.insert(users).values(values).returning();
 }

@@ -1,13 +1,21 @@
 import { z } from "zod";
 
+const corsOriginsSchema = z
+  .string()
+  .transform((value) =>
+    value
+      .split(",")
+      .map((origin) => origin.trim())
+      .filter(Boolean),
+  )
+  .pipe(z.array(z.url()).min(1));
+
 const envSchema = z.object({
-  NODE_ENV: z
-    .enum(["development", "test", "production"])
-    .default("development"),
+  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 
   PORT: z.coerce.number().int().positive().default(3000),
 
-  CORS_ORIGIN: z.url().default("http://localhost:5173"),
+  CORS_ORIGIN: corsOriginsSchema,
 
   DATABASE_URL: z.string().min(1),
 });
@@ -30,4 +38,4 @@ if (!parsed.success) {
   process.exit(1);
 }
 
-export const env = parsed.data;
+export const appEnv = parsed.data;

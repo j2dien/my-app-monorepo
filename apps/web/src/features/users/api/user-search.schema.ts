@@ -1,10 +1,6 @@
 import { z } from "zod";
 
-import {
-  SORT_ORDERS,
-  USER_PAGE_SIZES,
-  USER_SORT_VALUES,
-} from "./user.constants";
+import { SORT_ORDERS, USER_PAGE_SIZES, USER_SORT_VALUES } from "./user.constants";
 
 export const userSearchSchema = z.object({
   page: z.number().int().positive().default(1).catch(1),

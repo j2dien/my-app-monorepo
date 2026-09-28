@@ -35,9 +35,7 @@ test("renders error state", () => {
 
   expect(getByText("Failed to load users")).toBeInTheDocument();
 
-  expect(
-    getByText("Something went wrong while loading the user list."),
-  ).toBeInTheDocument();
+  expect(getByText("Something went wrong while loading the user list.")).toBeInTheDocument();
 });
 
 test("calls retry callback", async () => {
@@ -81,9 +79,7 @@ test("renders empty state when there are no users", () => {
 
   expect(getByText("No users yet")).toBeInTheDocument();
 
-  expect(
-    getByText("Create your first user using the form."),
-  ).toBeInTheDocument();
+  expect(getByText("Create your first user using the form.")).toBeInTheDocument();
 
   expect(
     queryByRole("button", {

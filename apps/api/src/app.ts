@@ -3,7 +3,7 @@ import { cors } from "hono/cors";
 import { requestId } from "hono/request-id";
 import { secureHeaders } from "hono/secure-headers";
 
-import { env } from "./config/env";
+import { appEnv } from "./config/env";
 import { AppError } from "./errors/app-error";
 import { requestLogger } from "./middleware/request-logger";
 import { v1 } from "./routes/v1";
@@ -19,7 +19,7 @@ base.use("*", requestLogger);
 base.use(
   "/api/*",
   cors({
-    origin: env.CORS_ORIGIN,
+    origin: appEnv.CORS_ORIGIN,
 
     allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 
@@ -66,7 +66,7 @@ export const app = base
         level: "error",
         requestId,
         message: error.message,
-        stack: env.NODE_ENV === "production" ? undefined : error.stack,
+        stack: appEnv.NODE_ENV === "production" ? undefined : error.stack,
       }),
     );
 

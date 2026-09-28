@@ -1,5 +1,5 @@
-import type { PageSize } from "@/features/users/api/user.types";
 import { USER_PAGE_SIZES } from "@/features/users/api/user.constants";
+import type { PageSize } from "@/features/users/api/user.types";
 
 interface UserPaginationProps {
   page: number;

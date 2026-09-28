@@ -1,16 +1,9 @@
 import { AppError } from "../../errors/app-error";
 import { isPostgresUniqueViolation } from "../../lib/postgres-error";
 
-import type {
-  UserRepository,
-} from './user.repository'
+import type { UserRepository } from "./user.repository";
 
-import type {
-  CreateUserInput,
-  UpdateUserInput,
-  UsersQuery,
-} from "./user.schema";
-
+import type { CreateUserInput, UpdateUserInput, UsersQuery } from "./user.schema";
 
 export function createUserService(repository: UserRepository) {
   return {
@@ -44,94 +37,48 @@ export function createUserService(repository: UserRepository) {
       const existing = await repository.findByEmail(input.email);
 
       if (existing) {
-        throw new AppError(
-          "EMAIL_ALREADY_EXISTS",
-          "Email already registered",
-          409,
-        );
+        throw new AppError("EMAIL_ALREADY_EXISTS", "Email already registered", 409);
       }
 
       try {
         return await repository.create(input);
       } catch (error) {
         if (isPostgresUniqueViolation(error)) {
-          throw new AppError(
-            "EMAIL_ALREADY_EXISTS",
-            "Email already registered",
-            409,
-          );
+          throw new AppError("EMAIL_ALREADY_EXISTS", "Email already registered", 409);
         }
 
         throw error;
       }
     },
 
-    async updateUser(
-      userId: string,
-      input: UpdateUserInput,
-    ) {
-      const existingUser =
-        await repository.findById(
-          userId,
-        );
+    async updateUser(userId: string, input: UpdateUserInput) {
+      const existingUser = await repository.findById(userId);
 
       if (!existingUser) {
-        throw new AppError(
-          "USER_NOT_FOUND",
-          "User not found",
-          404,
-        );
+        throw new AppError("USER_NOT_FOUND", "User not found", 404);
       }
 
-      if (
-        input.email &&
-        input.email !== existingUser.email
-      ) {
-        const userWithEmail =
-          await repository.findByEmail(
-            input.email,
-          );
+      if (input.email && input.email !== existingUser.email) {
+        const userWithEmail = await repository.findByEmail(input.email);
 
-        if (
-          userWithEmail &&
-          userWithEmail.id !== userId
-        ) {
-          throw new AppError(
-            "EMAIL_ALREADY_EXISTS",
-            "Email already registered",
-            409,
-            {
-              fields: {
-                email:
-                  "Email already registered",
-              },
+        if (userWithEmail && userWithEmail.id !== userId) {
+          throw new AppError("EMAIL_ALREADY_EXISTS", "Email already registered", 409, {
+            fields: {
+              email: "Email already registered",
             },
-          );
+          });
         }
       }
 
       try {
-        return await repository.update(
-          userId,
-          input,
-        );
+        return await repository.update(userId, input);
       } catch (error) {
-        if (
-          isPostgresUniqueViolation(
-            error,
-          )
-        ) {
-          throw new AppError(
-            "EMAIL_ALREADY_EXISTS",
-            "Email already registered",
-            409,
-            {
-              fields: {
-                email:
-                  "Email already registered",
-              },
+        if (isPostgresUniqueViolation(error)) {
+          throw new AppError("EMAIL_ALREADY_EXISTS", "Email already registered", 409, {
+            fields: {
+              email: "Email already registered",
             },
-          );
+          });
         }
 
         throw error;
@@ -148,4 +95,4 @@ export function createUserService(repository: UserRepository) {
   };
 }
 
-export type UserService = ReturnType<typeof createUserService>
+export type UserService = ReturnType<typeof createUserService>;

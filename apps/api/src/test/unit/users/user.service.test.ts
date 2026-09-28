@@ -1,27 +1,15 @@
-import {
-  beforeEach,
-  describe,
-  expect,
-  mock,
-  test,
-} from 'bun:test'
+import { beforeEach, describe, expect, mock, test } from "bun:test";
+import type { UsersQuery } from "@/modules/users/user.schema";
 
-import {
-  createUserService,
-} from '../../../modules/users/user.service'
+import type { UserRepository } from "../../../modules/users/user.repository";
+import { createUserService } from "../../../modules/users/user.service";
 
-import type {
-  UserRepository
-} from '../../../modules/users/user.repository'
-
-import type { UsersQuery } from '@/modules/users/user.schema'
-
-const findMany = mock<UserRepository['findMany']>()
-const findById = mock<UserRepository['findById']>()
-const findByEmail = mock<UserRepository['findByEmail']>()
-const create = mock<UserRepository['create']>()
-const update = mock<UserRepository['update']>()
-const deleteUser = mock<UserRepository['delete']>()
+const findMany = mock<UserRepository["findMany"]>();
+const findById = mock<UserRepository["findById"]>();
+const findByEmail = mock<UserRepository["findByEmail"]>();
+const create = mock<UserRepository["create"]>();
+const update = mock<UserRepository["update"]>();
+const deleteUser = mock<UserRepository["delete"]>();
 
 const repository: UserRepository = {
   findMany,
@@ -30,423 +18,324 @@ const repository: UserRepository = {
   create,
   update,
   delete: deleteUser,
-}
+};
 
-const userService =
-  createUserService(repository)
+const userService = createUserService(repository);
 
 beforeEach(() => {
-  findMany.mockClear()
-  findById.mockClear()
-  findByEmail.mockClear()
-  create.mockClear()
-  update.mockClear()
-  deleteUser.mockClear()
-})
+  findMany.mockClear();
+  findById.mockClear();
+  findByEmail.mockClear();
+  create.mockClear();
+  update.mockClear();
+  deleteUser.mockClear();
+});
 
-describe('userService', () => {
-  describe('getUser', () => {
-    test(
-      'returns user by id',
-      async () => {
-        findById.mockResolvedValue({
-          id: '1',
-          name: 'John',
-          email: 'john@example.com',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
+describe("userService", () => {
+  describe("getUser", () => {
+    test("returns user by id", async () => {
+      findById.mockResolvedValue({
+        id: "1",
+        name: "John",
+        email: "john@example.com",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
 
-        const user =
-          await userService.getUser('1')
+      const user = await userService.getUser("1");
 
-        expect(user.email)
-          .toBe('john@example.com')
+      expect(user.email).toBe("john@example.com");
 
-        expect(findById)
-          .toHaveBeenCalledWith('1')
-      },
-    )
+      expect(findById).toHaveBeenCalledWith("1");
+    });
 
-    test(
-      'throws USER_NOT_FOUND',
-      async () => {
-        findById.mockResolvedValue(null)
+    test("throws USER_NOT_FOUND", async () => {
+      findById.mockResolvedValue(null);
 
-        expect(
-          userService.getUser('1'),
-        ).rejects.toMatchObject({
-          code: 'USER_NOT_FOUND',
-          status: 404,
-        })
-      },
-    )
+      expect(userService.getUser("1")).rejects.toMatchObject({
+        code: "USER_NOT_FOUND",
+        status: 404,
+      });
+    });
 
-    test(
-      'returns users with pagination',
-      async () => {
-        const query: UsersQuery = {
-          page: 2,
-          pageSize: 10,
-          search: undefined,
-          sortBy: 'createdAt',
-          sortOrder: 'desc'
-        } as const
+    test("returns users with pagination", async () => {
+      const query: UsersQuery = {
+        page: 2,
+        pageSize: 10,
+        search: undefined,
+        sortBy: "createdAt",
+        sortOrder: "desc",
+      } as const;
 
-        findMany.mockResolvedValue({
-          items: [
-            {
-              id: '1',
-              name: 'John',
-              email: 'john@example.com',
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-            {
-              id: '2',
-              name: 'Jane',
-              email: 'jane@example.com',
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-          ],
-          total: 25,
-        })
+      findMany.mockResolvedValue({
+        items: [
+          {
+            id: "1",
+            name: "John",
+            email: "john@example.com",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+          {
+            id: "2",
+            name: "Jane",
+            email: "jane@example.com",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
+        total: 25,
+      });
 
-        const result = await userService.getUsers(query)
+      const result = await userService.getUsers(query);
 
-        expect(findMany).toHaveBeenCalledWith(query)
+      expect(findMany).toHaveBeenCalledWith(query);
 
-        expect(result.items).toHaveLength(2)
+      expect(result.items).toHaveLength(2);
 
-        expect(result.pagination)
-          .toEqual({
-            page: 2,
-            pageSize: 10,
-            total: 25,
-            totalPages: 3,
-          })
-      }
-    )
+      expect(result.pagination).toEqual({
+        page: 2,
+        pageSize: 10,
+        total: 25,
+        totalPages: 3,
+      });
+    });
 
-    test(
-        'returns zero totalPages when there are no users',
-        async () => {
-          const query: UsersQuery = {
-            page: 1,
-            pageSize: 20,
-            search: undefined,
-            sortBy: 'createdAt',
-            sortOrder: 'desc',
-          } as const
-    
-          findMany.mockResolvedValue({
-            items: [],
-            total: 0,
-          })
-    
-          const result =
-            await userService.getUsers(query)
-    
-          expect(result.items)
-            .toEqual([])
-    
-          expect(result.pagination)
-            .toEqual({
-              page: 1,
-              pageSize: 20,
-              total: 0,
-              totalPages: 0,
-            })
-        },
-      )
-  })
+    test("returns zero totalPages when there are no users", async () => {
+      const query: UsersQuery = {
+        page: 1,
+        pageSize: 20,
+        search: undefined,
+        sortBy: "createdAt",
+        sortOrder: "desc",
+      } as const;
 
-  describe('createUser', () => {
-    test(
-      'creates user',
-      async () => {
-        findByEmail.mockResolvedValue(null)
+      findMany.mockResolvedValue({
+        items: [],
+        total: 0,
+      });
 
-        create.mockResolvedValue({
-          id: '1',
-          name: 'John',
-          email: 'john@example.com',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
+      const result = await userService.getUsers(query);
 
-        const user =
-          await userService.createUser({
-            name: 'John',
-            email: 'john@example.com',
-          })
+      expect(result.items).toEqual([]);
 
-        expect(findByEmail)
-          .toHaveBeenCalledWith(
-            'john@example.com',
-          )
+      expect(result.pagination).toEqual({
+        page: 1,
+        pageSize: 20,
+        total: 0,
+        totalPages: 0,
+      });
+    });
+  });
 
-        expect(create)
-          .toHaveBeenCalledWith({
-            name: 'John',
-            email: 'john@example.com',
-          })
+  describe("createUser", () => {
+    test("creates user", async () => {
+      findByEmail.mockResolvedValue(null);
 
-        expect(user.email)
-          .toBe('john@example.com')
-      },
-    )
+      create.mockResolvedValue({
+        id: "1",
+        name: "John",
+        email: "john@example.com",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
 
-    test(
-      'rejects existing email',
-      async () => {
-        findByEmail.mockResolvedValue({
-          id: '1',
-          name: 'John',
-          email: 'john@example.com',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
+      const user = await userService.createUser({
+        name: "John",
+        email: "john@example.com",
+      });
 
-        expect(
-          userService.createUser({
-            name: 'John',
-            email: 'john@example.com',
-          }),
-        ).rejects.toMatchObject({
-          code: 'EMAIL_ALREADY_EXISTS',
-          status: 409,
-        })
+      expect(findByEmail).toHaveBeenCalledWith("john@example.com");
 
-        expect(create)
-          .not
-          .toHaveBeenCalled()
-      },
-    )
+      expect(create).toHaveBeenCalledWith({
+        name: "John",
+        email: "john@example.com",
+      });
 
-    test(
-      'maps postgres unique violation to EMAIL_ALREADY_EXISTS',
-      async () => {
-        findByEmail.mockResolvedValue(null)
+      expect(user.email).toBe("john@example.com");
+    });
 
-        const postgresError = {
-          code: '23505',
-        }
+    test("rejects existing email", async () => {
+      findByEmail.mockResolvedValue({
+        id: "1",
+        name: "John",
+        email: "john@example.com",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
 
-        create.mockRejectedValue(
-          postgresError,
-        )
+      expect(
+        userService.createUser({
+          name: "John",
+          email: "john@example.com",
+        }),
+      ).rejects.toMatchObject({
+        code: "EMAIL_ALREADY_EXISTS",
+        status: 409,
+      });
 
-        expect(
-          userService.createUser({
-            name: 'John',
-            email: 'john@example.com',
-          }),
-        ).rejects.toMatchObject({
-          code: 'EMAIL_ALREADY_EXISTS',
-          status: 409,
-        })
-      },
-    )
-  })
+      expect(create).not.toHaveBeenCalled();
+    });
 
-  describe('updateUser', () => {
-    test(
-      'updates user',
-      async () => {
-        findById.mockResolvedValue({
-          id: '1',
-          name: 'John',
-          email: 'john@example.com',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
+    test("maps postgres unique violation to EMAIL_ALREADY_EXISTS", async () => {
+      findByEmail.mockResolvedValue(null);
 
-        findByEmail.mockResolvedValue(null)
+      const postgresError = {
+        code: "23505",
+      };
 
-        update.mockResolvedValue({
-          id: '1',
-          name: 'John Smith',
-          email:
-            'john.smith@example.com',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
+      create.mockRejectedValue(postgresError);
 
-        const user =
-          await userService.updateUser(
-            '1',
-            {
-              name: 'John Smith',
-              email:
-                'john.smith@example.com',
-            },
-          )
+      expect(
+        userService.createUser({
+          name: "John",
+          email: "john@example.com",
+        }),
+      ).rejects.toMatchObject({
+        code: "EMAIL_ALREADY_EXISTS",
+        status: 409,
+      });
+    });
+  });
 
-        expect(findById)
-          .toHaveBeenCalledWith('1')
+  describe("updateUser", () => {
+    test("updates user", async () => {
+      findById.mockResolvedValue({
+        id: "1",
+        name: "John",
+        email: "john@example.com",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
 
-        expect(findByEmail)
-          .toHaveBeenCalledWith(
-            'john.smith@example.com',
-          )
+      findByEmail.mockResolvedValue(null);
 
-        expect(update)
-          .toHaveBeenCalledWith(
-            '1',
-            {
-              name: 'John Smith',
-              email:
-                'john.smith@example.com',
-            },
-          )
+      update.mockResolvedValue({
+        id: "1",
+        name: "John Smith",
+        email: "john.smith@example.com",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
 
-        expect(user)
-          .toMatchObject({
-            id: '1',
-            name: 'John Smith',
-            email:
-              'john.smith@example.com',
-          })
-      },
-    )
+      const user = await userService.updateUser("1", {
+        name: "John Smith",
+        email: "john.smith@example.com",
+      });
 
-    test(
-      'throws USER_NOT_FOUND when updating missing user',
-      async () => {
-        findById.mockResolvedValue(null)
+      expect(findById).toHaveBeenCalledWith("1");
 
-        expect(
-          userService.updateUser(
-            '1',
-            {
-              name: 'John Smith',
-              email:
-                'john.smith@example.com',
-            },
-          ),
-        ).rejects.toMatchObject({
-          code: 'USER_NOT_FOUND',
-          status: 404,
-        })
+      expect(findByEmail).toHaveBeenCalledWith("john.smith@example.com");
 
-        expect(findByEmail)
-          .not
-          .toHaveBeenCalled()
+      expect(update).toHaveBeenCalledWith("1", {
+        name: "John Smith",
+        email: "john.smith@example.com",
+      });
 
-        expect(update)
-          .not
-          .toHaveBeenCalled()
-      },
-    )
+      expect(user).toMatchObject({
+        id: "1",
+        name: "John Smith",
+        email: "john.smith@example.com",
+      });
+    });
 
-    test(
-      'rejects duplicate email when updating user',
-      async () => {
-        findById.mockResolvedValue({
-          id: '1',
-          name: 'John',
-          email: 'john@example.com',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
+    test("throws USER_NOT_FOUND when updating missing user", async () => {
+      findById.mockResolvedValue(null);
 
-        findByEmail.mockResolvedValue({
-          id: '2',
-          name: 'Jane',
-          email: 'jane@example.com',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
+      expect(
+        userService.updateUser("1", {
+          name: "John Smith",
+          email: "john.smith@example.com",
+        }),
+      ).rejects.toMatchObject({
+        code: "USER_NOT_FOUND",
+        status: 404,
+      });
 
-        expect(
-          userService.updateUser(
-            '1',
-            {
-              name: 'John',
-              email: 'jane@example.com',
-            },
-          ),
-        ).rejects.toMatchObject({
-          code: 'EMAIL_ALREADY_EXISTS',
-          status: 409,
-        })
+      expect(findByEmail).not.toHaveBeenCalled();
 
-        expect(update)
-          .not
-          .toHaveBeenCalled()
-      },
-    )
+      expect(update).not.toHaveBeenCalled();
+    });
 
-    test(
-      'maps postgres unique violation to EMAIL_ALREADY_EXISTS',
-      async () => {
-        findById.mockResolvedValue({
-          id: '1',
-          name: 'John',
-          email: 'john@example.com',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
+    test("rejects duplicate email when updating user", async () => {
+      findById.mockResolvedValue({
+        id: "1",
+        name: "John",
+        email: "john@example.com",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
 
-        findByEmail.mockResolvedValue(null)
+      findByEmail.mockResolvedValue({
+        id: "2",
+        name: "Jane",
+        email: "jane@example.com",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
 
-        const postgresError = {
-          code: '23505',
-        }
+      expect(
+        userService.updateUser("1", {
+          name: "John",
+          email: "jane@example.com",
+        }),
+      ).rejects.toMatchObject({
+        code: "EMAIL_ALREADY_EXISTS",
+        status: 409,
+      });
 
-        update.mockRejectedValue(
-          postgresError,
-        )
+      expect(update).not.toHaveBeenCalled();
+    });
 
-        expect(
-          userService.updateUser(
-            '1',
-            {
-              name: 'John Smith',
-              email:
-                'john.smith@example.com',
-            },
-          ),
-        ).rejects.toMatchObject({
-          code: 'EMAIL_ALREADY_EXISTS',
-          status: 409,
-        })
-      },
-    )
-  })
+    test("maps postgres unique violation to EMAIL_ALREADY_EXISTS", async () => {
+      findById.mockResolvedValue({
+        id: "1",
+        name: "John",
+        email: "john@example.com",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
 
-  describe('deleteUser', () => {
-    test(
-      'deletes user',
-      async () => {
-        deleteUser.mockResolvedValue({
-          id: '1',
-        })
+      findByEmail.mockResolvedValue(null);
 
-        await userService.deleteUser('1')
+      const postgresError = {
+        code: "23505",
+      };
 
-        expect(deleteUser)
-          .toHaveBeenCalledWith('1')
-      },
-    )
+      update.mockRejectedValue(postgresError);
 
-    test(
-      'throws USER_NOT_FOUND when deleting missing user',
-      async () => {
-        deleteUser.mockResolvedValue(null)
+      expect(
+        userService.updateUser("1", {
+          name: "John Smith",
+          email: "john.smith@example.com",
+        }),
+      ).rejects.toMatchObject({
+        code: "EMAIL_ALREADY_EXISTS",
+        status: 409,
+      });
+    });
+  });
 
-        expect(
-          userService.deleteUser('1'),
-        ).rejects.toMatchObject({
-          code: 'USER_NOT_FOUND',
-          status: 404,
-        })
+  describe("deleteUser", () => {
+    test("deletes user", async () => {
+      deleteUser.mockResolvedValue({
+        id: "1",
+      });
 
-        expect(deleteUser)
-          .toHaveBeenCalledWith('1')
-      },
-    )
-  })
-})
+      await userService.deleteUser("1");
+
+      expect(deleteUser).toHaveBeenCalledWith("1");
+    });
+
+    test("throws USER_NOT_FOUND when deleting missing user", async () => {
+      deleteUser.mockResolvedValue(null);
+
+      expect(userService.deleteUser("1")).rejects.toMatchObject({
+        code: "USER_NOT_FOUND",
+        status: 404,
+      });
+
+      expect(deleteUser).toHaveBeenCalledWith("1");
+    });
+  });
+});

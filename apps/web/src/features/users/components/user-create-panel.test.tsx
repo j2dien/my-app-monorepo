@@ -24,9 +24,7 @@ test("renders create user panel", () => {
 });
 
 test("shows creating label while mutation is pending", () => {
-  const { getByRole } = render(
-    <UserCreatePanel formKey={0} isPending onSubmit={async () => {}} />,
-  );
+  const { getByRole } = render(<UserCreatePanel formKey={0} isPending onSubmit={async () => {}} />);
 
   expect(
     getByRole("button", {

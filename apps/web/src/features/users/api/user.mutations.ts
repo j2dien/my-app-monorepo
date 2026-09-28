@@ -1,6 +1,5 @@
-import { mutationOptions } from "@tanstack/react-query";
-
 import type { CreateUserInput, UpdateUserInput } from "@app/contracts/users";
+import { mutationOptions } from "@tanstack/react-query";
 
 import { api } from "@/lib/api/client";
 import { throwApiError } from "@/lib/api/error";

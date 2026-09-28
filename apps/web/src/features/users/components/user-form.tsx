@@ -1,6 +1,5 @@
+import { type CreateUserInput, createUserSchema } from "@app/contracts/users";
 import { useState } from "react";
-
-import { createUserSchema, type CreateUserInput } from "@app/contracts/users";
 
 import { ApiError } from "@/lib/api/error";
 

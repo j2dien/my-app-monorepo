@@ -1,9 +1,8 @@
 import { afterEach, expect, test } from "bun:test";
-import userEvent from "@testing-library/user-event";
-
-import { renderRouter } from "@/test/render-router";
-import { mockJsonFetch, mockFetchWithHandler } from "@/test/mock-fetch";
 import { waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { mockFetchWithHandler, mockJsonFetch } from "@/test/mock-fetch";
+import { renderRouter } from "@/test/render-router";
 
 const originalFetch = globalThis.fetch;
 
@@ -97,9 +96,7 @@ test("renders empty state when API returns no users", async () => {
 
   expect(await findByText("No users yet")).toBeInTheDocument();
 
-  expect(
-    await findByText("Create your first user using the form."),
-  ).toBeInTheDocument();
+  expect(await findByText("Create your first user using the form.")).toBeInTheDocument();
 });
 
 test("renders no results state when search returns no users", async () => {
@@ -190,10 +187,9 @@ test("searches users after debounce", async () => {
     });
   });
 
-  const { findByText, getByRole, queryByText, getByText, router } =
-    renderRouter({
-      initialEntry: "/users?page=1&pageSize=20",
-    });
+  const { findByText, getByRole, queryByText, getByText, router } = renderRouter({
+    initialEntry: "/users?page=1&pageSize=20",
+  });
 
   /*
    * Pastikan initial request selesai.
@@ -381,9 +377,7 @@ test("navigates to the next page and renders page 2 users", async () => {
 
     const url = new URL(request.url);
 
-    const page = Number(
-      url.searchParams.get("page") ?? "1",
-    );
+    const page = Number(url.searchParams.get("page") ?? "1");
 
     if (page === 2) {
       return Response.json({
@@ -440,25 +434,16 @@ test("navigates to the next page and renders page 2 users", async () => {
     });
   });
 
-  const {
-    findByText,
-    getByRole,
-    queryByText,
-    router,
-  } = renderRouter({
+  const { findByText, getByRole, queryByText, router } = renderRouter({
     initialEntry: "/users?page=1&pageSize=20",
   });
 
   /*
    * Tunggu page 1 selesai.
    */
-  expect(
-    await findByText("Jane Doe"),
-  ).toBeInTheDocument();
+  expect(await findByText("Jane Doe")).toBeInTheDocument();
 
-  expect(
-    await findByText("Page 1 of 2"),
-  ).toBeInTheDocument();
+  expect(await findByText("Page 1 of 2")).toBeInTheDocument();
 
   /*
    * Klik Next.
@@ -472,22 +457,16 @@ test("navigates to the next page and renders page 2 users", async () => {
   /*
    * Tunggu sampai data page 2 tampil.
    */
-  expect(
-    await findByText("Alice Smith"),
-  ).toBeInTheDocument();
+  expect(await findByText("Alice Smith")).toBeInTheDocument();
 
-  expect(
-    await findByText("Bob Smith"),
-  ).toBeInTheDocument();
+  expect(await findByText("Bob Smith")).toBeInTheDocument();
 
   /*
    * Data page 1 akhirnya harus hilang.
    */
   await waitFor(
     () => {
-      expect(
-        queryByText("Jane Doe") === null,
-      ).toBe(true);
+      expect(queryByText("Jane Doe") === null).toBe(true);
     },
     {
       timeout: 1000,
@@ -497,16 +476,12 @@ test("navigates to the next page and renders page 2 users", async () => {
   /*
    * Pagination UI harus berubah.
    */
-  expect(
-    await findByText("Page 2 of 2"),
-  ).toBeInTheDocument();
+  expect(await findByText("Page 2 of 2")).toBeInTheDocument();
 
   /*
    * Router search state harus page=2.
    */
-  expect(
-    router.state.location.search,
-  ).toMatchObject({
+  expect(router.state.location.search).toMatchObject({
     page: 2,
     pageSize: 20,
   });
@@ -518,9 +493,7 @@ test("navigates to the next page and renders page 2 users", async () => {
     requestedUrls.some((requestUrl) => {
       const url = new URL(requestUrl);
 
-      return (
-        url.searchParams.get("page") === "2"
-      );
+      return url.searchParams.get("page") === "2";
     }),
   ).toBe(true);
 });
@@ -535,9 +508,7 @@ test("navigates back to the previous page", async () => {
 
     const url = new URL(request.url);
 
-    const page = Number(
-      url.searchParams.get("page") ?? "1",
-    );
+    const page = Number(url.searchParams.get("page") ?? "1");
 
     if (page === 2) {
       return Response.json({
@@ -594,22 +565,14 @@ test("navigates back to the previous page", async () => {
     });
   });
 
-  const {
-    findByText,
-    getByRole,
-    queryByText,
-    router,
-  } = renderRouter({
-    initialEntry:
-      "/users?page=1&pageSize=20",
+  const { findByText, getByRole, queryByText, router } = renderRouter({
+    initialEntry: "/users?page=1&pageSize=20",
   });
 
   /*
    * Page 1.
    */
-  expect(
-    await findByText("Jane Doe"),
-  ).toBeInTheDocument();
+  expect(await findByText("Jane Doe")).toBeInTheDocument();
 
   /*
    * Pindah ke page 2.
@@ -620,13 +583,9 @@ test("navigates back to the previous page", async () => {
     }),
   );
 
-  expect(
-    await findByText("Alice Smith"),
-  ).toBeInTheDocument();
+  expect(await findByText("Alice Smith")).toBeInTheDocument();
 
-  expect(
-    await findByText("Page 2 of 2"),
-  ).toBeInTheDocument();
+  expect(await findByText("Page 2 of 2")).toBeInTheDocument();
 
   /*
    * Kembali ke page 1.
@@ -642,38 +601,28 @@ test("navigates back to the previous page", async () => {
    *
    * Boleh berasal dari cache.
    */
-  expect(
-    await findByText("John Doe"),
-  ).toBeInTheDocument();
+  expect(await findByText("John Doe")).toBeInTheDocument();
 
-  expect(
-    await findByText("Jane Doe"),
-  ).toBeInTheDocument();
+  expect(await findByText("Jane Doe")).toBeInTheDocument();
 
   /*
    * Data page 2 hilang.
    */
   await waitFor(
     () => {
-      expect(
-        queryByText("Alice Smith") === null,
-      ).toBe(true);
+      expect(queryByText("Alice Smith") === null).toBe(true);
     },
     {
       timeout: 1000,
     },
   );
 
-  expect(
-    await findByText("Page 1 of 2"),
-  ).toBeInTheDocument();
+  expect(await findByText("Page 1 of 2")).toBeInTheDocument();
 
   /*
    * URL kembali ke page=1.
    */
-  expect(
-    router.state.location.search,
-  ).toMatchObject({
+  expect(router.state.location.search).toMatchObject({
     page: 1,
     pageSize: 20,
   });
@@ -689,13 +638,9 @@ test("changes page size and resets to page 1", async () => {
 
     const url = new URL(request.url);
 
-    const page = Number(
-      url.searchParams.get("page") ?? "1",
-    );
+    const page = Number(url.searchParams.get("page") ?? "1");
 
-    const pageSize = Number(
-      url.searchParams.get("pageSize") ?? "20",
-    );
+    const pageSize = Number(url.searchParams.get("pageSize") ?? "20");
 
     if (pageSize === 50) {
       return Response.json({
@@ -704,28 +649,22 @@ test("changes page size and resets to page 1", async () => {
             id: "user-1",
             name: "John Doe",
             email: "john@example.com",
-            createdAt:
-              "2026-09-18T00:00:00.000Z",
-            updatedAt:
-              "2026-09-18T00:00:00.000Z",
+            createdAt: "2026-09-18T00:00:00.000Z",
+            updatedAt: "2026-09-18T00:00:00.000Z",
           },
           {
             id: "user-2",
             name: "Jane Doe",
             email: "jane@example.com",
-            createdAt:
-              "2026-09-18T00:00:00.000Z",
-            updatedAt:
-              "2026-09-18T00:00:00.000Z",
+            createdAt: "2026-09-18T00:00:00.000Z",
+            updatedAt: "2026-09-18T00:00:00.000Z",
           },
           {
             id: "user-3",
             name: "Alice Smith",
             email: "alice@example.com",
-            createdAt:
-              "2026-09-18T00:00:00.000Z",
-            updatedAt:
-              "2026-09-18T00:00:00.000Z",
+            createdAt: "2026-09-18T00:00:00.000Z",
+            updatedAt: "2026-09-18T00:00:00.000Z",
           },
         ],
 
@@ -744,10 +683,8 @@ test("changes page size and resets to page 1", async () => {
           id: "user-3",
           name: "Alice Smith",
           email: "alice@example.com",
-          createdAt:
-            "2026-09-18T00:00:00.000Z",
-          updatedAt:
-            "2026-09-18T00:00:00.000Z",
+          createdAt: "2026-09-18T00:00:00.000Z",
+          updatedAt: "2026-09-18T00:00:00.000Z",
         },
       ],
 
@@ -760,38 +697,25 @@ test("changes page size and resets to page 1", async () => {
     });
   });
 
-  const {
-    findByText,
-    getByRole,
-    router,
-  } = renderRouter({
-    initialEntry:
-      "/users?page=2&pageSize=20",
+  const { findByText, getByRole, router } = renderRouter({
+    initialEntry: "/users?page=2&pageSize=20",
   });
 
   /*
    * Pastikan initial page selesai.
    */
-  expect(
-    await findByText("Alice Smith"),
-  ).toBeInTheDocument();
+  expect(await findByText("Alice Smith")).toBeInTheDocument();
 
-  expect(
-    await findByText("Page 2 of 2"),
-  ).toBeInTheDocument();
+  expect(await findByText("Page 2 of 2")).toBeInTheDocument();
 
   /*
    * Pilih page size 50.
    */
-  const pageSizeSelect =
-    getByRole("combobox", {
-      name: /per page/i,
-    });
+  const pageSizeSelect = getByRole("combobox", {
+    name: /per page/i,
+  });
 
-  await user.selectOptions(
-    pageSizeSelect,
-    "50",
-  );
+  await user.selectOptions(pageSizeSelect, "50");
 
   /*
    * Karena pageSize berubah,
@@ -799,13 +723,9 @@ test("changes page size and resets to page 1", async () => {
    */
   await waitFor(
     () => {
-      expect(
-        router.state.location.search.page === 1,
-      ).toBe(true);
+      expect(router.state.location.search.page === 1).toBe(true);
 
-      expect(
-        router.state.location.search.pageSize === 50,
-      ).toBe(true);
+      expect(router.state.location.search.pageSize === 50).toBe(true);
     },
     {
       timeout: 1000,
@@ -815,20 +735,14 @@ test("changes page size and resets to page 1", async () => {
   /*
    * Data untuk pageSize=50 tampil.
    */
-  expect(
-    await findByText("John Doe"),
-  ).toBeInTheDocument();
+  expect(await findByText("John Doe")).toBeInTheDocument();
 
-  expect(
-    await findByText("Jane Doe"),
-  ).toBeInTheDocument();
+  expect(await findByText("Jane Doe")).toBeInTheDocument();
 
   /*
    * Pagination ikut berubah.
    */
-  expect(
-    await findByText("Page 1 of 1"),
-  ).toBeInTheDocument();
+  expect(await findByText("Page 1 of 1")).toBeInTheDocument();
 
   /*
    * Pastikan API pernah menerima
@@ -838,10 +752,7 @@ test("changes page size and resets to page 1", async () => {
     requestedUrls.some((requestUrl) => {
       const url = new URL(requestUrl);
 
-      return (
-        url.searchParams.get("page") === "1" &&
-        url.searchParams.get("pageSize") === "50"
-      );
+      return url.searchParams.get("page") === "1" && url.searchParams.get("pageSize") === "50";
     }),
   ).toBe(true);
 });
@@ -856,8 +767,7 @@ test("changes sort field and resets page to 1", async () => {
 
     const url = new URL(request.url);
 
-    const sortBy =
-      url.searchParams.get("sortBy");
+    const sortBy = url.searchParams.get("sortBy");
 
     if (sortBy === "name") {
       return Response.json({
@@ -889,38 +799,23 @@ test("changes sort field and resets page to 1", async () => {
     return Response.json(usersResponse);
   });
 
-  const {
-    findByText,
-    getByRole,
-    router,
-  } = renderRouter({
-    initialEntry:
-      "/users?page=2&pageSize=20&sortBy=createdAt&sortOrder=desc",
+  const { findByText, getByRole, router } = renderRouter({
+    initialEntry: "/users?page=2&pageSize=20&sortBy=createdAt&sortOrder=desc",
   });
 
-  expect(
-    await findByText("John Doe"),
-  ).toBeInTheDocument();
+  expect(await findByText("John Doe")).toBeInTheDocument();
 
-  const sortBySelect =
-    getByRole("combobox", {
-      name: /sort by/i,
-    });
+  const sortBySelect = getByRole("combobox", {
+    name: /sort by/i,
+  });
 
-  await user.selectOptions(
-    sortBySelect,
-    "name",
-  );
+  await user.selectOptions(sortBySelect, "name");
 
   await waitFor(
     () => {
-      expect(
-        router.state.location.search.page === 1,
-      ).toBe(true);
+      expect(router.state.location.search.page === 1).toBe(true);
 
-      expect(
-        router.state.location.search.sortBy === "name",
-      ).toBe(true);
+      expect(router.state.location.search.sortBy === "name").toBe(true);
     },
     {
       timeout: 1000,
@@ -929,13 +824,9 @@ test("changes sort field and resets page to 1", async () => {
 
   expect(
     requestedUrls.some((requestUrl) => {
-      const url =
-        new URL(requestUrl);
+      const url = new URL(requestUrl);
 
-      return (
-        url.searchParams.get("page") === "1" &&
-        url.searchParams.get("sortBy") === "name"
-      );
+      return url.searchParams.get("page") === "1" && url.searchParams.get("sortBy") === "name";
     }),
   ).toBe(true);
 });
@@ -951,38 +842,23 @@ test("changes sort order and resets page to 1", async () => {
     return Response.json(usersResponse);
   });
 
-  const {
-    findByText,
-    getByRole,
-    router,
-  } = renderRouter({
-    initialEntry:
-      "/users?page=2&pageSize=20&sortBy=name&sortOrder=desc",
+  const { findByText, getByRole, router } = renderRouter({
+    initialEntry: "/users?page=2&pageSize=20&sortBy=name&sortOrder=desc",
   });
 
-  expect(
-    await findByText("John Doe"),
-  ).toBeInTheDocument();
+  expect(await findByText("John Doe")).toBeInTheDocument();
 
-  const sortOrderSelect =
-    getByRole("combobox", {
-      name: /order/i,
-    });
+  const sortOrderSelect = getByRole("combobox", {
+    name: /order/i,
+  });
 
-  await user.selectOptions(
-    sortOrderSelect,
-    "asc",
-  );
+  await user.selectOptions(sortOrderSelect, "asc");
 
   await waitFor(
     () => {
-      expect(
-        router.state.location.search.page === 1,
-      ).toBe(true);
+      expect(router.state.location.search.page === 1).toBe(true);
 
-      expect(
-        router.state.location.search.sortOrder === "asc",
-      ).toBe(true);
+      expect(router.state.location.search.sortOrder === "asc").toBe(true);
     },
     {
       timeout: 1000,
@@ -991,8 +867,7 @@ test("changes sort order and resets page to 1", async () => {
 
   expect(
     requestedUrls.some((requestUrl) => {
-      const url =
-        new URL(requestUrl);
+      const url = new URL(requestUrl);
 
       return (
         url.searchParams.get("page") === "1" &&
@@ -1011,10 +886,7 @@ test("creates a user and refreshes the user list", async () => {
   mockFetchWithHandler(async (request) => {
     const url = new URL(request.url);
 
-    if (
-      request.method === "POST" &&
-      url.pathname.endsWith("/api/v1/users")
-    ) {
+    if (request.method === "POST" && url.pathname.endsWith("/api/v1/users")) {
       created = true;
 
       return Response.json(
@@ -1033,10 +905,7 @@ test("creates a user and refreshes the user list", async () => {
       );
     }
 
-    if (
-      request.method === "GET" &&
-      url.pathname.endsWith("/api/v1/users")
-    ) {
+    if (request.method === "GET" && url.pathname.endsWith("/api/v1/users")) {
       return Response.json({
         data: created
           ? [
@@ -1065,34 +934,21 @@ test("creates a user and refreshes the user list", async () => {
     });
   });
 
-  const {
-    findByText,
-    getByLabelText,
-    getByRole,
-  } = renderRouter({
-    initialEntry:
-      "/users?page=1&pageSize=20",
+  const { findByText, getByLabelText, getByRole } = renderRouter({
+    initialEntry: "/users?page=1&pageSize=20",
   });
 
   /*
    * Initial query selesai dulu.
    */
-  expect(
-    await findByText("Jane Doe"),
-  ).toBeInTheDocument();
+  expect(await findByText("Jane Doe")).toBeInTheDocument();
 
   /*
    * Isi form create.
    */
-  await user.type(
-    getByLabelText("Name"),
-    "Alice Smith",
-  );
+  await user.type(getByLabelText("Name"), "Alice Smith");
 
-  await user.type(
-    getByLabelText("Email"),
-    "alice@example.com",
-  );
+  await user.type(getByLabelText("Email"), "alice@example.com");
 
   /*
    * Submit.
@@ -1111,34 +967,22 @@ test("creates a user and refreshes the user list", async () => {
    * → GET list ulang
    * → Alice muncul.
    */
-  expect(
-    await findByText("Alice Smith"),
-  ).toBeInTheDocument();
+  expect(await findByText("Alice Smith")).toBeInTheDocument();
 
-  expect(
-    await findByText(
-      "alice@example.com",
-    ),
-  ).toBeInTheDocument();
+  expect(await findByText("alice@example.com")).toBeInTheDocument();
 
   /*
    * Total list ikut berubah.
    */
-  expect(
-    await findByText("3 users"),
-  ).toBeInTheDocument();
+  expect(await findByText("3 users")).toBeInTheDocument();
 
   /*
    * UserForm di-remount melalui
    * createFormKey, sehingga input kosong.
    */
-  expect(
-    getByLabelText("Name"),
-  ).toHaveValue("");
+  expect(getByLabelText("Name")).toHaveValue("");
 
-  expect(
-    getByLabelText("Email"),
-  ).toHaveValue("");
+  expect(getByLabelText("Email")).toHaveValue("");
 });
 
 test("shows duplicate email error and keeps form values", async () => {
@@ -1149,19 +993,13 @@ test("shows duplicate email error and keeps form values", async () => {
   mockFetchWithHandler(async (request) => {
     const url = new URL(request.url);
 
-    if (
-      request.method === "GET" &&
-      url.pathname.endsWith("/api/v1/users")
-    ) {
+    if (request.method === "GET" && url.pathname.endsWith("/api/v1/users")) {
       getUsersCount += 1;
 
       return Response.json(usersResponse);
     }
 
-    if (
-      request.method === "POST" &&
-      url.pathname.endsWith("/api/v1/users")
-    ) {
+    if (request.method === "POST" && url.pathname.endsWith("/api/v1/users")) {
       return Response.json(
         {
           error: {
@@ -1184,45 +1022,25 @@ test("shows duplicate email error and keeps form values", async () => {
     });
   });
 
-  const {
-    findByText,
-    getByLabelText,
-    getByRole,
-    queryByText,
-  } = renderRouter({
-    initialEntry:
-      "/users?page=1&pageSize=20",
+  const { findByText, getByLabelText, getByRole, queryByText } = renderRouter({
+    initialEntry: "/users?page=1&pageSize=20",
   });
 
   /*
    * Tunggu initial list selesai.
    */
-  expect(
-    await findByText("Jane Doe"),
-  ).toBeInTheDocument();
+  expect(await findByText("Jane Doe")).toBeInTheDocument();
 
-  const nameInput =
-    getByLabelText(
-      "Name",
-    ) as HTMLInputElement;
+  const nameInput = getByLabelText("Name") as HTMLInputElement;
 
-  const emailInput =
-    getByLabelText(
-      "Email",
-    ) as HTMLInputElement;
+  const emailInput = getByLabelText("Email") as HTMLInputElement;
 
   /*
    * Isi form create.
    */
-  await user.type(
-    nameInput,
-    "Duplicate User",
-  );
+  await user.type(nameInput, "Duplicate User");
 
-  await user.type(
-    emailInput,
-    "john@example.com",
-  );
+  await user.type(emailInput, "john@example.com");
 
   /*
    * Submit create user.
@@ -1238,55 +1056,32 @@ test("shows duplicate email error and keeps form values", async () => {
    * Error harus tampil inline
    * di field email.
    */
-  expect(
-    await findByText(
-      "Email already exists",
-    ),
-  ).toBeInTheDocument();
+  expect(await findByText("Email already exists")).toBeInTheDocument();
 
   /*
    * Mutation gagal,
    * jadi form tidak boleh reset.
    */
-  expect(
-    nameInput,
-  ).toHaveValue(
-    "Duplicate User",
-  );
+  expect(nameInput).toHaveValue("Duplicate User");
 
-  expect(
-    emailInput,
-  ).toHaveValue(
-    "john@example.com",
-  );
+  expect(emailInput).toHaveValue("john@example.com");
 
   /*
    * List juga tidak berubah.
    */
-  expect(
-    await findByText("2 users"),
-  ).toBeInTheDocument();
+  expect(await findByText("2 users")).toBeInTheDocument();
 
   /*
    * User memperbaiki email.
    */
-  await user.clear(
-    emailInput,
-  );
+  await user.clear(emailInput);
 
-  await user.type(
-    emailInput,
-    "new@example.com",
-  );
+  await user.type(emailInput, "new@example.com");
 
   /*
    * Value baru harus tersimpan.
    */
-  expect(
-    emailInput,
-  ).toHaveValue(
-    "new@example.com",
-  );
+  expect(emailInput).toHaveValue("new@example.com");
 
   /*
    * Server error lama harus
@@ -1294,11 +1089,7 @@ test("shows duplicate email error and keeps form values", async () => {
    */
   await waitFor(
     () => {
-      expect(
-        queryByText(
-          "Email already exists",
-        ) === null,
-      ).toBe(true);
+      expect(queryByText("Email already exists") === null).toBe(true);
     },
     {
       timeout: 1000,
@@ -1310,11 +1101,8 @@ test("shows duplicate email error and keeps form values", async () => {
    * query list tidak boleh
    * di-invalidate/refetch.
    */
-  expect(
-    getUsersCount,
-  ).toBe(1);
+  expect(getUsersCount).toBe(1);
 });
-
 
 test("shows form error when create user fails unexpectedly", async () => {
   const user = userEvent.setup();
@@ -1324,19 +1112,13 @@ test("shows form error when create user fails unexpectedly", async () => {
   mockFetchWithHandler(async (request) => {
     const url = new URL(request.url);
 
-    if (
-      request.method === "GET" &&
-      url.pathname.endsWith("/api/v1/users")
-    ) {
+    if (request.method === "GET" && url.pathname.endsWith("/api/v1/users")) {
       getUsersCount += 1;
 
       return Response.json(usersResponse);
     }
 
-    if (
-      request.method === "POST" &&
-      url.pathname.endsWith("/api/v1/users")
-    ) {
+    if (request.method === "POST" && url.pathname.endsWith("/api/v1/users")) {
       return Response.json(
         {
           error: {
@@ -1356,44 +1138,25 @@ test("shows form error when create user fails unexpectedly", async () => {
     });
   });
 
-  const {
-    findByText,
-    getByLabelText,
-    getByRole,
-  } = renderRouter({
-    initialEntry:
-      "/users?page=1&pageSize=20",
+  const { findByText, getByLabelText, getByRole } = renderRouter({
+    initialEntry: "/users?page=1&pageSize=20",
   });
 
   /*
    * Tunggu initial list.
    */
-  expect(
-    await findByText("Jane Doe"),
-  ).toBeInTheDocument();
+  expect(await findByText("Jane Doe")).toBeInTheDocument();
 
-  const nameInput =
-    getByLabelText(
-      "Name",
-    ) as HTMLInputElement;
+  const nameInput = getByLabelText("Name") as HTMLInputElement;
 
-  const emailInput =
-    getByLabelText(
-      "Email",
-    ) as HTMLInputElement;
+  const emailInput = getByLabelText("Email") as HTMLInputElement;
 
   /*
    * Isi form.
    */
-  await user.type(
-    nameInput,
-    "Failed User",
-  );
+  await user.type(nameInput, "Failed User");
 
-  await user.type(
-    emailInput,
-    "failed@example.com",
-  );
+  await user.type(emailInput, "failed@example.com");
 
   /*
    * Submit.
@@ -1407,39 +1170,23 @@ test("shows form error when create user fails unexpectedly", async () => {
   /*
    * Error level form harus tampil.
    */
-  expect(
-    await findByText(
-      "Something went wrong",
-    ),
-  ).toBeInTheDocument();
+  expect(await findByText("Something went wrong")).toBeInTheDocument();
 
   /*
    * Form tidak boleh reset.
    */
-  expect(
-    nameInput,
-  ).toHaveValue(
-    "Failed User",
-  );
+  expect(nameInput).toHaveValue("Failed User");
 
-  expect(
-    emailInput,
-  ).toHaveValue(
-    "failed@example.com",
-  );
+  expect(emailInput).toHaveValue("failed@example.com");
 
   /*
    * List tetap sama.
    */
-  expect(
-    await findByText("2 users"),
-  ).toBeInTheDocument();
+  expect(await findByText("2 users")).toBeInTheDocument();
 
   /*
    * Karena mutation gagal,
    * list tidak di-invalidate/refetch.
    */
-  expect(
-    getUsersCount,
-  ).toBe(1);
+  expect(getUsersCount).toBe(1);
 });

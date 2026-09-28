@@ -1,12 +1,7 @@
+import { useNavigate } from "@tanstack/react-router";
 import { useCallback } from "react";
 
-import { useNavigate } from "@tanstack/react-router";
-
-import type {
-  PageSize,
-  SortOrder,
-  UserSortBy,
-} from "@/features/users/api/user.types";
+import type { PageSize, SortOrder, UserSortBy } from "@/features/users/api/user.types";
 
 export function useUsersNavigation() {
   const navigate = useNavigate({

@@ -1,19 +1,17 @@
-import { z } from 'zod'
+import { z } from "zod";
 
 export const createUserSchema = z.object({
-    name: z
-        .string()
-        .trim()
-        .min(1, 'Name is required')
-        .max(100, 'Name must be at most 100 characters'),
+  name: z
+    .string()
+    .trim()
+    .min(1, "Name is required")
+    .max(100, "Name must be at most 100 characters"),
 
-    email: z.string().trim().toLowerCase().pipe(z.email("Email is invalid")),
-})
+  email: z.string().trim().toLowerCase().pipe(z.email("Email is invalid")),
+});
 
-export const updateUserSchema = createUserSchema.partial()
+export const updateUserSchema = createUserSchema.partial();
 
-export type CreateUserInput =
-    z.infer<typeof createUserSchema>
+export type CreateUserInput = z.infer<typeof createUserSchema>;
 
-export type UpdateUserInput =
-    z.infer<typeof updateUserSchema>
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;

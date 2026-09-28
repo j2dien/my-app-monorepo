@@ -6,6 +6,7 @@
     "packages/*"
   ],
   "devDependencies": {
+    "@biomejs/biome": "2.5.14",
     "@types/bun": "^1.4.2"
   },
   "scripts": {
@@ -16,6 +17,12 @@
     "test": "bun run test:unit",
     "check": "bun run typecheck && bun run test:unit",
     "check:all": "bun run typecheck && bun run test:unit && bun run test:integration",
-    "build": "bun run --workspaces build"
+    "build": "bun run --workspaces build",
+
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "biome:check": "biome check .",
+    "biome:fix": "biome check --write ."
   }
 }

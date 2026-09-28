@@ -1,15 +1,9 @@
-import type {
-  UserSearch,
-} from "./user-search.schema";
+import type { UserSearch } from "./user-search.schema";
 
-export type UserSortBy =
-  UserSearch["sortBy"];
+export type UserSortBy = UserSearch["sortBy"];
 
-export type SortOrder =
-  UserSearch["sortOrder"];
+export type SortOrder = UserSearch["sortOrder"];
 
-export type PageSize =
-  UserSearch["pageSize"];
+export type PageSize = UserSearch["pageSize"];
 
-export type UsersQueryParams =
-  UserSearch;
+export type UsersQueryParams = UserSearch;

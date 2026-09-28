@@ -1,20 +1,18 @@
-import { useState } from "react";
-
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-
+import { useState } from "react";
+import { userKeys } from "@/features/users/api/user.keys";
 import { createUserMutationOptions } from "@/features/users/api/user.mutations";
 import { usersQueryOptions } from "@/features/users/api/user.queries";
-import { userKeys } from "@/features/users/api/user.keys";
-import { UserSearchInput } from "@/features/users/components/user-search-input";
-import { UserList } from "@/features/users/components/user-list";
-import { UserPagination } from "@/features/users/components/user-pagination";
 import type { UsersQueryParams } from "@/features/users/api/user.types";
-import { UserSortControls } from "@/features/users/components/user-sort-controls";
-import { UserListState } from "@/features/users/components/user-list-state";
-import { UserCreatePanel } from "@/features/users/components/user-create-panel";
-import { UserListHeader } from "@/features/users/components/user-list-header";
 import { userSearchSchema } from "@/features/users/api/user-search.schema";
+import { UserCreatePanel } from "@/features/users/components/user-create-panel";
+import { UserList } from "@/features/users/components/user-list";
+import { UserListHeader } from "@/features/users/components/user-list-header";
+import { UserListState } from "@/features/users/components/user-list-state";
+import { UserPagination } from "@/features/users/components/user-pagination";
+import { UserSearchInput } from "@/features/users/components/user-search-input";
+import { UserSortControls } from "@/features/users/components/user-sort-controls";
 import { usePrefetchNextUsersPage } from "@/features/users/hooks/use-prefetch-next-users-page";
 import { useUsersNavigation } from "@/features/users/hooks/use-users-navigation";
 
@@ -29,8 +27,7 @@ export const Route = createFileRoute("/users")({
     sortOrder: search.sortOrder,
   }),
 
-  loader: ({ context, deps }) =>
-    context.queryClient.query(usersQueryOptions(deps)),
+  loader: ({ context, deps }) => context.queryClient.query(usersQueryOptions(deps)),
 
   component: UsersPage,
 });
@@ -84,8 +81,7 @@ function UsersPage() {
 
   const hasSearch = Boolean(search.search?.trim());
 
-  const isEmpty =
-    !usersQuery.isPending && !usersQuery.isError && users.length === 0;
+  const isEmpty = !usersQuery.isPending && !usersQuery.isError && users.length === 0;
 
   const createMutation = useMutation({
     ...createUserMutationOptions,
@@ -151,10 +147,7 @@ function UsersPage() {
 
           {/* User list */}
           {!usersQuery.isError && users.length > 0 && (
-            <UserList
-              users={users}
-              isPlaceholderData={usersQuery.isPlaceholderData}
-            />
+            <UserList users={users} isPlaceholderData={usersQuery.isPlaceholderData} />
           )}
 
           {/* Pagination */}

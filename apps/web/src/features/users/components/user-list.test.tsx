@@ -1,5 +1,4 @@
 import { expect, test } from "bun:test";
-import { render } from "@testing-library/react";
 import {
   createMemoryHistory,
   createRootRoute,
@@ -7,6 +6,7 @@ import {
   createRouter,
   RouterProvider,
 } from "@tanstack/react-router";
+import { render } from "@testing-library/react";
 
 import { UserList } from "./user-list";
 

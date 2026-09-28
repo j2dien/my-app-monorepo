@@ -1,19 +1,14 @@
 import { Hono } from "hono";
-
-import type { UserService } from "./user.service";
-
 import { validator } from "../../lib/validator";
 import {
   createUserSchema,
-  userIdParamSchema,
   updateUserSchema,
+  userIdParamSchema,
   usersQuerySchema,
 } from "./user.schema";
+import type { UserService } from "./user.service";
 
-
-export function createUserRoute(
-  userService: UserService
-) {
+export function createUserRoute(userService: UserService) {
   return new Hono()
     .get("/", validator("query", usersQuerySchema), async (c) => {
       const query = c.req.valid("query");
@@ -92,5 +87,5 @@ export function createUserRoute(
 
         return c.body(null, 204);
       },
-    )
-};
+    );
+}

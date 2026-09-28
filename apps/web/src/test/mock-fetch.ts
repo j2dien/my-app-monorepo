@@ -12,9 +12,7 @@ export function mockJsonFetch(body: unknown, init?: ResponseInit) {
   });
 }
 
-export function mockFetchWithHandler(
-  handler: (request: Request) => Response | Promise<Response>,
-) {
+export function mockFetchWithHandler(handler: (request: Request) => Response | Promise<Response>) {
   mockFetch(async (input, init) => {
     const request = input instanceof Request ? input : new Request(input, init);
 

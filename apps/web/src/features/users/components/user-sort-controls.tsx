@@ -1,6 +1,6 @@
 import {
-  SORT_ORDERS,
   SORT_ORDER_LABELS,
+  SORT_ORDERS,
   USER_SORT_LABELS,
   USER_SORT_VALUES,
 } from "@/features/users/api/user.constants";

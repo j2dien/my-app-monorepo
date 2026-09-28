@@ -7,9 +7,9 @@
   "scripts": {
     "dev": "bun run --hot src/index.ts",
     "start": "bun src/index.ts",
-    
+
     "typecheck": "tsc --noEmit",
-    
+
     "test": "bun test src/test/unit",
     "test:unit": "bun test src/test/unit",
     "test:integration": "bun --env-file=.env.test test src/test/integration",
@@ -17,7 +17,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate --config=drizzle.config.ts",
     "db:migrate:test": "bun --env-file=.env.test run db:migrate",
-    
+
     "db:studio": "drizzle-kit studio"
   },
   "private": true,

@@ -30,6 +30,9 @@ jobs:
   
       - name: Install dependencies
         run: bun ci
+
+      - name: Lint and format check
+        run: bun run biome:check
   
       - name: Typecheck
         run: >

@@ -56,9 +56,7 @@ export function UserListState({
         <>
           <h2 className="font-medium text-zinc-900">No users found</h2>
 
-          <p className="mt-2 text-sm text-zinc-500">
-            No users match "{searchValue}".
-          </p>
+          <p className="mt-2 text-sm text-zinc-500">No users match "{searchValue}".</p>
 
           <button
             type="button"
@@ -72,9 +70,7 @@ export function UserListState({
         <>
           <h2 className="font-medium text-zinc-900">No users yet</h2>
 
-          <p className="mt-2 text-sm text-zinc-500">
-            Create your first user using the form.
-          </p>
+          <p className="mt-2 text-sm text-zinc-500">Create your first user using the form.</p>
         </>
       )}
     </div>

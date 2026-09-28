@@ -1,19 +1,13 @@
-import {
-  useSuspenseQuery,
-  useQueryClient,
-  useMutation,
-} from "@tanstack/react-query";
-import { Link, createFileRoute, useRouter, notFound } from "@tanstack/react-router";
-
+import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
+import { userKeys } from "@/features/users/api/user.keys";
 import {
   deleteUserMutationOptions,
   updateUserMutationOptions,
 } from "@/features/users/api/user.mutations";
-
 import { userQueryOptions } from "@/features/users/api/user.queries";
-import { ApiError } from "@/lib/api/error";
 import { UserForm } from "@/features/users/components/user-form";
-import { userKeys } from "@/features/users/api/user.keys";
+import { ApiError } from "@/lib/api/error";
 
 export const Route = createFileRoute("/users_/$userId")({
   loader: async ({ context, params }) => {
@@ -22,10 +16,7 @@ export const Route = createFileRoute("/users_/$userId")({
         ...userQueryOptions(params.userId),
       });
     } catch (error) {
-      if (
-        error instanceof ApiError &&
-        error.code === "USER_NOT_FOUND"
-      ) {
+      if (error instanceof ApiError && error.code === "USER_NOT_FOUND") {
         throw notFound();
       }
 
@@ -110,8 +101,7 @@ function UserDetailPage() {
     },
   });
 
-  const deleteError =
-    deleteMutation.error instanceof ApiError ? deleteMutation.error : null;
+  const deleteError = deleteMutation.error instanceof ApiError ? deleteMutation.error : null;
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
@@ -143,13 +133,9 @@ function UserDetailPage() {
       <section className="mt-6 rounded-xl border border-red-200 p-6">
         <h2 className="font-semibold text-red-700">Danger zone</h2>
 
-        <p className="mt-2 text-sm text-zinc-600">
-          Deleting this user cannot be undone.
-        </p>
+        <p className="mt-2 text-sm text-zinc-600">Deleting this user cannot be undone.</p>
 
-        {deleteError && (
-          <p className="mt-3 text-sm text-red-600">{deleteError.message}</p>
-        )}
+        {deleteError && <p className="mt-3 text-sm text-red-600">{deleteError.message}</p>}
 
         <button
           type="button"
@@ -176,13 +162,9 @@ function UserNotFound() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
       <div className="rounded-xl border border-zinc-200 p-8 text-center">
-        <h1 className="text-xl font-semibold">
-          User not found
-        </h1>
+        <h1 className="text-xl font-semibold">User not found</h1>
 
-        <p className="mt-2 text-sm text-zinc-500">
-          The user you are looking for does not exist.
-        </p>
+        <p className="mt-2 text-sm text-zinc-500">The user you are looking for does not exist.</p>
 
         <Link
           to="/users"
@@ -195,28 +177,17 @@ function UserNotFound() {
   );
 }
 
-function UserDetailError({
-  error,
-}: {
-  error: unknown;
-}) {
+function UserDetailError({ error }: { error: unknown }) {
   const router = useRouter();
 
-  const message =
-    error instanceof ApiError
-      ? error.message
-      : "Something went wrong";
+  const message = error instanceof ApiError ? error.message : "Something went wrong";
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
       <div className="rounded-xl border border-red-200 p-8">
-        <h1 className="text-xl font-semibold">
-          Failed to load user
-        </h1>
+        <h1 className="text-xl font-semibold">Failed to load user</h1>
 
-        <p className="mt-2 text-sm text-red-700">
-          {message}
-        </p>
+        <p className="mt-2 text-sm text-red-700">{message}</p>
 
         <div className="mt-6 flex gap-3">
           <button

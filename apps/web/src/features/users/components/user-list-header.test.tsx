@@ -4,9 +4,7 @@ import { render } from "@testing-library/react";
 import { UserListHeader } from "./user-list-header";
 
 test("renders users heading and description", () => {
-  const { getByRole, getByText } = render(
-    <UserListHeader isUpdating={false} />,
-  );
+  const { getByRole, getByText } = render(<UserListHeader isUpdating={false} />);
 
   expect(
     getByRole("heading", {
@@ -14,9 +12,7 @@ test("renders users heading and description", () => {
     }),
   ).toBeInTheDocument();
 
-  expect(
-    getByText("Manage users registered in the application."),
-  ).toBeInTheDocument();
+  expect(getByText("Manage users registered in the application.")).toBeInTheDocument();
 });
 
 test("does not show updating indicator by default", () => {

@@ -1,3 +1,3 @@
-import { db } from '../../../src/db'
+import { db } from "../../../src/db";
 
-export { db }
+export { db };

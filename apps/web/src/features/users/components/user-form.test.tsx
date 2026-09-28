@@ -1,9 +1,8 @@
 import { expect, test } from "bun:test";
 import { render, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-
-import { UserForm } from "./user-form";
 import { ApiError } from "@/lib/api/error";
+import { UserForm } from "./user-form";
 
 test("renders default values", () => {
   const { getByLabelText } = render(
@@ -154,14 +153,9 @@ test("shows server email error inline", async () => {
     <UserForm
       submitLabel="Create user"
       onSubmit={async () => {
-        throw new ApiError(
-          "EMAIL_ALREADY_EXISTS",
-          "Email already exists",
-          409,
-          {
-            email: "Email already exists",
-          },
-        );
+        throw new ApiError("EMAIL_ALREADY_EXISTS", "Email already exists", 409, {
+          email: "Email already exists",
+        });
       }}
     />,
   );

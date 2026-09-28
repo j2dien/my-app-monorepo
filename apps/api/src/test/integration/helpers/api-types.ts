@@ -23,17 +23,17 @@ export type UsersListResponse = {
 
 export type ApiErrorResponse = {
   error: {
-    code: string
-    message: string
-    fields?: Record<string, string>
-    requestId?: string
-  }
-}
+    code: string;
+    message: string;
+    fields?: Record<string, string>;
+    requestId?: string;
+  };
+};
 
 export type UserResponse = {
-  data: UserDto
-}
+  data: UserDto;
+};
 
 export type CreateUserResponse = {
-  data: UserPayload
-}
+  data: UserPayload;
+};

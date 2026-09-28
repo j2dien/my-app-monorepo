@@ -1,13 +1,9 @@
-import { eq, asc, desc, ilike, or } from "drizzle-orm";
+import { asc, desc, eq, ilike, or } from "drizzle-orm";
 
 import { db } from "../../db";
 import { users } from "../../db/schema";
 
-import type {
-  UsersQuery,
-  CreateUserInput,
-  UpdateUserInput,
-} from "./user.schema";
+import type { CreateUserInput, UpdateUserInput, UsersQuery } from "./user.schema";
 
 export const userRepository = {
   async findMany({ page, pageSize, search, sortBy, sortOrder }: UsersQuery) {
@@ -72,11 +68,7 @@ export const userRepository = {
   },
 
   async findByEmail(email: string) {
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1);
+    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
 
     return user ?? null;
   },
@@ -119,4 +111,4 @@ export const userRepository = {
   },
 };
 
-export type UserRepository = typeof userRepository
+export type UserRepository = typeof userRepository;

@@ -1,6 +1,5 @@
-import { hc } from "hono/client";
-
 import type { AppType } from "@app/api/app";
+import { hc } from "hono/client";
 
 import { env } from "../../config/env";
 

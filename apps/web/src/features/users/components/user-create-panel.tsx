@@ -9,20 +9,14 @@ interface UserCreatePanelProps {
   onSubmit: (input: CreateUserInput) => Promise<void>;
 }
 
-export function UserCreatePanel({
-  formKey,
-  isPending,
-  onSubmit,
-}: UserCreatePanelProps) {
+export function UserCreatePanel({ formKey, isPending, onSubmit }: UserCreatePanelProps) {
   return (
     <aside>
       <div className="sticky top-6 rounded-xl border border-zinc-200 p-6">
         <div>
           <h2 className="text-lg font-semibold">Create user</h2>
 
-          <p className="mt-1 text-sm text-zinc-500">
-            Add a new user to the application.
-          </p>
+          <p className="mt-1 text-sm text-zinc-500">Add a new user to the application.</p>
         </div>
 
         <div className="mt-6">

@@ -54,10 +54,7 @@ export function UserSearchInput({
      * Navigation dengan nilai yang sama
      * sudah sedang berlangsung.
      */
-    if (
-      pendingSearchRef.current &&
-      pendingSearchRef.current.value === nextSearch
-    ) {
+    if (pendingSearchRef.current && pendingSearchRef.current.value === nextSearch) {
       return;
     }
 
@@ -124,17 +121,11 @@ export function UserSearchInput({
   function handleClear() {
     setSearchValue("");
 
-    if (
-      currentSearch === undefined &&
-      pendingSearchRef.current === null
-    ) {
+    if (currentSearch === undefined && pendingSearchRef.current === null) {
       return;
     }
 
-    if (
-      pendingSearchRef.current &&
-      pendingSearchRef.current.value === undefined
-    ) {
+    if (pendingSearchRef.current && pendingSearchRef.current.value === undefined) {
       return;
     }
 
