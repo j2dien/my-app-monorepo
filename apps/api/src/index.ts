@@ -1,11 +1,12 @@
 import { app } from "./app";
 import { appEnv } from "./config/env";
 
-Bun.serve({
+const server = Bun.serve({
+  port: appEnv.PORT,
+  hostname: "0.0.0.0",
   fetch: app.fetch,
 });
 
-export default {
-  port: appEnv.PORT,
-  fetch: app.fetch,
-};
+console.log(
+  `API running at ${server.url}`,
+);
