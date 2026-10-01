@@ -13,21 +13,12 @@ COPY apps/web apps/web
 COPY apps/api apps/api
 COPY packages/contracts packages/contracts
 
-ARG VITE_API_URL
-ENV VITE_API_URL=${VITE_API_URL}
-
 WORKDIR /app/apps/web
-
-RUN bun -e '\
-  const value = process.env.VITE_API_URL; \
-  if (!value) throw new Error("VITE_API_URL is required"); \
-  new URL(value); \
-'
 
 RUN bun run build
 
 
-FROM nginx:alpine AS runtime
+FROM nginx:1.30.5-alpine AS runtime
 
 COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
 
