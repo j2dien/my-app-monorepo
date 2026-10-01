@@ -18,6 +18,12 @@ ENV VITE_API_URL=${VITE_API_URL}
 
 WORKDIR /app/apps/web
 
+RUN bun -e '\
+  const value = process.env.VITE_API_URL; \
+  if (!value) throw new Error("VITE_API_URL is required"); \
+  new URL(value); \
+'
+
 RUN bun run build
 
 

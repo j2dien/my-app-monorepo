@@ -199,6 +199,15 @@ jobs:
             type=sha,prefix=sha-
             type=raw,value=latest
 
+      - name: Validate Web build configuration
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+        run: |
+          if [ -z "$VITE_API_URL" ]; then
+            echo "::error::VITE_API_URL is not configured"
+            exit 1
+          fi
+
       - name: Build and push Web image
         uses: docker/build-push-action@v7
         with:
