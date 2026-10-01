@@ -7,6 +7,8 @@ import {
   usersQuerySchema,
 } from "./user.schema";
 import type { UserService } from "./user.service";
+import { toUserDto } from "./user.mapper";
+import type { UserResponse, UsersResponse } from "@app/contracts";
 
 export function createUserRoute(userService: UserService) {
   return new Hono()
@@ -16,9 +18,11 @@ export function createUserRoute(userService: UserService) {
       const result = await userService.getUsers(query);
 
       return c.json({
-        data: result.items,
+        data: result.items.map(toUserDto),
         pagination: result.pagination,
-      });
+      } satisfies UsersResponse,
+        200,
+      );
     })
 
     .get(
@@ -32,8 +36,10 @@ export function createUserRoute(userService: UserService) {
         const user = await userService.getUser(id);
 
         return c.json({
-          data: user,
-        });
+          data: toUserDto(user),
+        } satisfies UserResponse,
+          200,
+        );
       },
     )
 
@@ -49,8 +55,8 @@ export function createUserRoute(userService: UserService) {
 
         return c.json(
           {
-            data: user,
-          },
+            data: toUserDto(user),
+          } satisfies UserResponse,
           201,
         );
       },
@@ -70,8 +76,10 @@ export function createUserRoute(userService: UserService) {
         const user = await userService.updateUser(id, input);
 
         return c.json({
-          data: user,
-        });
+          data: toUserDto(user),
+        } satisfies UserResponse,
+          200,
+        );
       },
     )
 
