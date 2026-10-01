@@ -167,6 +167,29 @@ jobs:
           cache-from: type=gha,scope=api
           cache-to: type=gha,mode=max,scope=api
 
+      - name: Migration image metadata
+        id: migrate-meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/${{ github.repository }}-migrate
+          tags: |
+            type=sha,prefix=sha-
+            type=raw,value=latest
+      
+      - name: Build and push migration image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./apps/api/Dockerfile
+          target: migrate
+          push: true
+      
+          tags: ${{ steps.migrate-meta.outputs.tags }}
+          labels: ${{ steps.migrate-meta.outputs.labels }}
+      
+          cache-from: type=gha,scope=migrate
+          cache-to: type=gha,mode=max,scope=migrate
+
       - name: Web image metadata
         id: web-meta
         uses: docker/metadata-action@v6

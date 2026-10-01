@@ -30,6 +30,22 @@ RUN bun build \
   --outdir=dist \
   ./src/index.ts
 
+FROM oven/bun:1.4.0 AS migrate
+
+WORKDIR /app
+
+COPY --from=install /app/node_modules ./node_modules
+COPY --from=install /app/apps/api/node_modules ./apps/api/node_modules
+
+COPY package.json bun.lock ./
+COPY apps/api/package.json apps/api/package.json
+COPY apps/api/drizzle.config.ts apps/api/drizzle.config.ts
+COPY apps/api/drizzle apps/api/drizzle
+COPY apps/api/src/db/schema apps/api/src/db/schema
+
+WORKDIR /app/apps/api
+
+CMD ["bun", "run", "db:migrate"]
 
 FROM oven/bun:1.4.0-slim AS runtime
 
