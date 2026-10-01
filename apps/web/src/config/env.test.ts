@@ -1,4 +1,4 @@
-import { describe, expect, spyOn, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 
 import { parseFrontendEnv } from "./env";
 
@@ -14,16 +14,14 @@ describe("parseFrontendEnv", () => {
   });
 
   test("throws for invalid frontend environment", () => {
-    const consoleError = spyOn(console, "error").mockImplementation(() => {});
-
     expect(() =>
       parseFrontendEnv({
-        VITE_API_URL: undefined,
+        VITE_API_URL: "not-a-url",
       }),
     ).toThrow("Invalid frontend environment");
+  });
 
-    expect(consoleError).toHaveBeenCalled();
-
-    consoleError.mockRestore();
+  test("allows VITE_API_URL to be omitted", () => {
+    expect(parseFrontendEnv({})).toEqual({});
   });
 });
