@@ -7,6 +7,4 @@ const server = Bun.serve({
   fetch: app.fetch,
 });
 
-console.log(
-  `API running at ${server.url}`,
-);
+console.log(`API running at ${server.url}`);
