@@ -1,13 +1,18 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { mutationOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { createUser, deleteUser, updateUser } from "./user.api"
 import { userKeys } from "./user.keys";
+
+export const createUserMutationOptions = mutationOptions({
+  mutationKey: userKeys.create(),
+  mutationFn: createUser,
+})
 
 export function useCreateUserMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: createUser,
+    ...createUserMutationOptions,
 
     onSuccess: async (user) => {
       queryClient.setQueryData(userKeys.detail(user.id), user)

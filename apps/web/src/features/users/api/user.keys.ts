@@ -14,4 +14,5 @@ export const userKeys = {
 
   detail: (userId: string) =>
     [...userKeys.details(), userId] as const,
-};
+  create: () => [...userKeys.all, "create"] as const,
+}

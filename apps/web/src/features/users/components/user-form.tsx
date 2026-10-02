@@ -1,7 +1,7 @@
-import { type CreateUserInput, createUserSchema } from "@app/contracts/users";
+import { type CreateUserInput, createUserInputSchema } from "@app/contracts";
 import { useState } from "react";
 
-import { ApiError } from "@/lib/api/error";
+import { ApiClientError } from "@/lib/api/api-error";
 
 import { useAppForm } from "@/lib/form/use-app-form";
 
@@ -13,6 +13,23 @@ interface UserFormProps {
   defaultValues?: CreateUserInput;
 
   onSubmit: (input: CreateUserInput) => Promise<void>;
+}
+
+function getUserFieldErrors(error: ApiClientError): UserFieldErrors {
+  const fields = error.details?.fields;
+
+  if (!fields) {
+    return {};
+  }
+
+  return {
+    ...(fields.name?.[0]
+      ? { name: fields.name[0] }
+      : {}),
+    ...(fields.email?.[0]
+      ? { email: fields.email[0] }
+      : {}),
+  };
 }
 
 export function UserForm({
@@ -29,42 +46,47 @@ export function UserForm({
 
   const [formError, setFormError] = useState<string | null>(null);
 
+  const clearServerError = (
+    field: keyof CreateUserInput
+  ) => {
+    setServerErrors((current) => {
+      if (!(field in current)) {
+        return current;
+      }
+      
+      const next = { ...current };
+      delete next[field];
+
+      return next;
+    })
+  }
+
   const form = useAppForm({
     defaultValues,
 
     validators: {
-      onChange: createUserSchema,
+      onChange: createUserInputSchema,
     },
 
     onSubmit: async ({ value }) => {
       setServerErrors({});
       setFormError(null);
 
-      const parsed = createUserSchema.parse(value);
+      const parsed = createUserInputSchema.parse(value);
 
       try {
         await onSubmit(parsed);
       } catch (error) {
-        if (error instanceof ApiError) {
-          if (error.fields) {
-            setServerErrors(error.fields);
+        if (error instanceof ApiClientError) {
+          const fieldErrors = getUserFieldErrors(error)
+          
+          if (Object.keys(fieldErrors).length > 0) {
+            setServerErrors(fieldErrors);
 
             return;
           }
 
-          /*
-           * Business error yang secara
-           * semantik milik email.
-           */
-          if (error.code === "EMAIL_ALREADY_EXISTS") {
-            setServerErrors({
-              email: error.message,
-            });
-
-            return;
-          }
-
-          setFormError(error.message);
+          setFormError(error.message)
 
           return;
         }
@@ -91,9 +113,7 @@ export function UserForm({
             placeholder="John Doe"
             serverError={serverErrors.name}
             onValueChange={() => {
-              if (serverErrors.name) {
-                setServerErrors((current) => ({ ...current, name: undefined }));
-              }
+              clearServerError("name")
             }}
           />
         )}
@@ -107,12 +127,7 @@ export function UserForm({
             placeholder="john@example.com"
             serverError={serverErrors.email}
             onValueChange={() => {
-              if (serverErrors.email) {
-                setServerErrors((current) => ({
-                  ...current,
-                  email: undefined,
-                }));
-              }
+              clearServerError("email")
             }}
           />
         )}

@@ -1,8 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { userKeys } from "@/features/users/api/user.keys";
-import { createUserMutationOptions } from "@/features/users/api/user.mutations";
+import { useCreateUserMutation } from "@/features/users/api/user.mutations";
 import { usersQueryOptions } from "@/features/users/api/user.queries";
 import type { UsersQueryParams } from "@/features/users/api/user.types";
 import { userSearchSchema } from "@/features/users/api/user-search.schema";
@@ -45,8 +44,6 @@ function UsersPage() {
     handleNextPage,
   } = useUsersNavigation();
 
-  const queryClient = useQueryClient();
-
   const queryParams: UsersQueryParams = {
     page: search.page,
     pageSize: search.pageSize,
@@ -81,27 +78,7 @@ function UsersPage() {
 
   const isEmpty = !isPending && !isError && users.length === 0;
 
-  const createMutation = useMutation({
-    ...createUserMutationOptions,
-
-    onSuccess: async () => {
-      /*
-       * Reset form create.
-       */
-      setCreateFormKey((current) => current + 1);
-
-      /*
-       * Semua variasi users list:
-       *
-       * ['users', 'list', {...}]
-       *
-       * akan dianggap stale.
-       */
-      await queryClient.invalidateQueries({
-        queryKey: userKeys.lists(),
-      });
-    },
-  });
+  const createMutation = useCreateUserMutation();
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
@@ -173,6 +150,10 @@ function UsersPage() {
           isPending={createMutation.isPending}
           onSubmit={async (input) => {
             await createMutation.mutateAsync(input);
+
+            setCreateFormKey(
+              (current) => current + 1
+            )
           }}
         />
       </div>
