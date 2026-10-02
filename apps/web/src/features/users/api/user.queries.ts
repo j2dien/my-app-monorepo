@@ -1,65 +1,27 @@
-import { keepPreviousData, queryOptions } from "@tanstack/react-query";
+import { queryOptions } from "@tanstack/react-query";
 
-import { api } from "@/lib/api/client";
-import { throwApiError } from "@/lib/api/error";
+import type { UsersQueryParams } from "@app/contracts";
+
+import {
+  getUser,
+  getUsers,
+} from "./user.api";
 import { userKeys } from "./user.keys";
-import type { UsersQueryParams } from "./user.types";
 
-export function usersQueryOptions(params: UsersQueryParams) {
+export function usersQueryOptions(
+  params: UsersQueryParams,
+) {
   return queryOptions({
     queryKey: userKeys.list(params),
-
-    staleTime: 30_000,
-
-    placeholderData: keepPreviousData,
-
-    queryFn: async () => {
-      const response = await api.api.v1.users.$get({
-        query: {
-          page: String(params.page),
-
-          pageSize: String(params.pageSize),
-
-          sortBy: params.sortBy,
-
-          sortOrder: params.sortOrder,
-
-          ...(params.search
-            ? {
-                search: params.search,
-              }
-            : {}),
-        },
-      });
-
-      if (!response.ok) {
-        return throwApiError(response);
-      }
-
-      return response.json();
-    },
+    queryFn: () => getUsers(params),
   });
 }
 
-export function userQueryOptions(userId: string) {
+export function userQueryOptions(
+  userId: string,
+) {
   return queryOptions({
     queryKey: userKeys.detail(userId),
-    staleTime: 30_000,
-
-    queryFn: async () => {
-      const response = await api.api.v1.users[":id"].$get({
-        param: {
-          id: userId,
-        },
-      });
-
-      if (!response.ok) {
-        return throwApiError(response);
-      }
-
-      const body = await response.json();
-
-      return body.data;
-    },
+    queryFn: () => getUser(userId),
   });
 }

@@ -72,7 +72,7 @@ export function createUserService(repository: UserRepository) {
             409,
             {
               fields: {
-                email: "Email already registered",
+                email: ["Email already registered"],
               },
             },
           );
@@ -99,7 +99,7 @@ export function createUserService(repository: UserRepository) {
             409,
             {
               fields: {
-                email: "Email already registered",
+                email: ["Email already registered"],
               },
             },
           );

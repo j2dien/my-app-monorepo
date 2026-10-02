@@ -1,65 +1,54 @@
-import type { CreateUserInput, UpdateUserInput } from "@app/contracts/users";
-import { mutationOptions } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { api } from "@/lib/api/client";
-import { throwApiError } from "@/lib/api/error";
+import { createUser, deleteUser, updateUser } from "./user.api"
 import { userKeys } from "./user.keys";
 
-export const createUserMutationOptions = mutationOptions({
-  mutationKey: [...userKeys.all, "create"],
+export function useCreateUserMutation() {
+  const queryClient = useQueryClient()
 
-  mutationFn: async (input: CreateUserInput) => {
-    const response = await api.api.v1.users.$post({
-      json: input,
-    });
+  return useMutation({
+    mutationFn: createUser,
 
-    if (!response.ok) {
-      return throwApiError(response);
+    onSuccess: async (user) => {
+      queryClient.setQueryData(userKeys.detail(user.id), user)
+
+      await queryClient.invalidateQueries({
+        queryKey: userKeys.lists()
+      })
     }
-
-    const body = await response.json();
-
-    return body.data;
-  },
-});
-
-export function updateUserMutationOptions(userId: string) {
-  return mutationOptions({
-    mutationKey: [...userKeys.detail(userId), "update"],
-
-    mutationFn: async (input: UpdateUserInput) => {
-      const response = await api.api.v1.users[":id"].$patch({
-        param: {
-          id: userId,
-        },
-        json: input,
-      });
-
-      if (!response.ok) {
-        return throwApiError(response);
-      }
-
-      const body = await response.json();
-
-      return body.data;
-    },
-  });
+  })
 }
 
-export function deleteUserMutationOptions(userId: string) {
-  return mutationOptions({
-    mutationKey: [...userKeys.detail(userId), "delete"],
+export function useUpdateUserMutation() {
+  const queryClient = useQueryClient();
 
-    mutationFn: async () => {
-      const response = await api.api.v1.users[":id"].$delete({
-        param: {
-          id: userId,
-        },
+  return useMutation({
+    mutationFn: updateUser,
+
+    onSuccess: async (user) => {
+      queryClient.setQueryData(userKeys.detail(user.id), user),
+
+      await queryClient.invalidateQueries({
+        queryKey: userKeys.lists()
+      })
+    }
+  })
+}
+
+export function useDeleteUserMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteUser,
+
+    onSuccess: async (_, userId) => {
+      queryClient.removeQueries({
+        queryKey: userKeys.detail(userId),
       });
 
-      if (!response.ok) {
-        return throwApiError(response);
-      }
+      await queryClient.invalidateQueries({
+        queryKey: userKeys.lists(),
+      });
     },
   });
 }

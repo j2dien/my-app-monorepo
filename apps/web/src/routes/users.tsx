@@ -65,13 +65,11 @@ function UsersPage() {
    */
   const [createFormKey, setCreateFormKey] = useState(0);
 
-  const usersQuery = useQuery(usersQueryOptions(queryParams));
+  const {data: usersResponse, isPending, isError, isRefetching, refetch, isPlaceholderData} = useQuery(usersQueryOptions(queryParams));
 
-  const data = usersQuery.data;
+  const users = usersResponse?.data ?? [];
 
-  const users = data?.data ?? [];
-
-  const pagination = data?.pagination;
+  const pagination = usersResponse?.pagination;
 
   usePrefetchNextUsersPage({
     params: queryParams,
@@ -81,7 +79,7 @@ function UsersPage() {
 
   const hasSearch = Boolean(search.search?.trim());
 
-  const isEmpty = !usersQuery.isPending && !usersQuery.isError && users.length === 0;
+  const isEmpty = !isPending && !isError && users.length === 0;
 
   const createMutation = useMutation({
     ...createUserMutationOptions,
@@ -111,7 +109,7 @@ function UsersPage() {
         {/* Users list */}
         <section>
           {/* Header */}
-          <UserListHeader isUpdating={usersQuery.isRefetching} />
+          <UserListHeader isUpdating={isRefetching} />
 
           {/* Search */}
           <div className="mt-6">
@@ -134,20 +132,20 @@ function UsersPage() {
 
           {/* Loading/Query error/Empty state */}
           <UserListState
-            isPending={usersQuery.isPending}
-            isError={usersQuery.isError}
+            isPending={isPending}
+            isError={isError}
             isEmpty={isEmpty}
             hasSearch={hasSearch}
             searchValue={search.search}
             onRetry={() => {
-              void usersQuery.refetch();
+              void refetch();
             }}
             onClearSearch={handleClearSearch}
           />
 
           {/* User list */}
-          {!usersQuery.isError && users.length > 0 && (
-            <UserList users={users} isPlaceholderData={usersQuery.isPlaceholderData} />
+          {!isError && users.length > 0 && (
+            <UserList users={users} isPlaceholderData={isPlaceholderData} />
           )}
 
           {/* Pagination */}
@@ -157,7 +155,7 @@ function UsersPage() {
               pageSize={search.pageSize}
               total={pagination.total}
               totalPages={pagination.totalPages}
-              isPlaceholderData={usersQuery.isPlaceholderData}
+              isPlaceholderData={isPlaceholderData}
               onPageSizeChange={handlePageSizeChange}
               onPreviousPage={() => {
                 handlePreviousPage(pagination.page);

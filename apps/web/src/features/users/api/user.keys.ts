@@ -1,13 +1,17 @@
-import type { UsersQueryParams } from "./user.types";
+import type { UsersQueryParams } from "@app/contracts";
 
 export const userKeys = {
   all: ["users"] as const,
 
-  lists: () => [...userKeys.all, "list"] as const,
+  lists: () =>
+    [...userKeys.all, "list"] as const,
 
-  list: (params: UsersQueryParams) => [...userKeys.lists(), params] as const,
+  list: (params: UsersQueryParams) =>
+    [...userKeys.lists(), params] as const,
 
-  details: () => [...userKeys.all, "detail"] as const,
+  details: () =>
+    [...userKeys.all, "detail"] as const,
 
-  detail: (userId: string) => [...userKeys.details(), userId] as const,
+  detail: (userId: string) =>
+    [...userKeys.details(), userId] as const,
 };

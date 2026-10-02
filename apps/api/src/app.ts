@@ -7,6 +7,7 @@ import { appEnv } from "./config/env";
 import { AppError } from "./errors/app-error";
 import { requestLogger } from "./middleware/request-logger";
 import { v1 } from "./routes/v1";
+import type { ApiError } from "@app/contracts";
 
 export const base = new Hono();
 
@@ -55,8 +56,13 @@ export const app = base
             code: error.code,
             message: error.message,
             requestId,
+            ...(error.details
+              ? {
+                details: error.details,
+              }
+              :{})
           },
-        },
+        } satisfies ApiError,
         error.status,
       );
     }
@@ -77,7 +83,7 @@ export const app = base
           message: "Internal server error",
           requestId,
         },
-      },
+      } satisfies ApiError,
       500,
     );
   });

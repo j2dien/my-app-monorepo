@@ -1,8 +1,8 @@
 import { z } from "zod";
 
-export const validationErrorDetailsSchema = z.object({
-  formErrors: z.array(z.string()),
-  fieldErrors: z.record(z.string(), z.array(z.string())),
+export const apiErrorDetailsSchema  = z.object({
+  fields: z.record(z.string(), z.array(z.string())).optional(),
+  formErrors: z.array(z.string()).optional(),
 });
 
 export const apiErrorSchema = z.object({
@@ -10,12 +10,10 @@ export const apiErrorSchema = z.object({
     code: z.string().min(1),
     message: z.string().min(1),
     requestId: z.string().min(1),
-    details: validationErrorDetailsSchema.optional(),
+    details: apiErrorDetailsSchema.optional(),
   }),
 });
 
-export type ValidationErrorDetails = z.infer<
-  typeof validationErrorDetailsSchema
->;
 
+export type ApiErrorDetails = z.infer<typeof apiErrorDetailsSchema>;
 export type ApiError = z.infer<typeof apiErrorSchema>;

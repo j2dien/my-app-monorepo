@@ -7,7 +7,7 @@ import {
 } from "@/features/users/api/user.mutations";
 import { userQueryOptions } from "@/features/users/api/user.queries";
 import { UserForm } from "@/features/users/components/user-form";
-import { ApiError } from "@/lib/api/error";
+import { ApiClientError } from "@/lib/api/api-error";
 
 export const Route = createFileRoute("/users_/$userId")({
   loader: async ({ context, params }) => {
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/users_/$userId")({
         ...userQueryOptions(params.userId),
       });
     } catch (error) {
-      if (error instanceof ApiError && error.code === "USER_NOT_FOUND") {
+      if (error instanceof ApiClientError && error.code === "USER_NOT_FOUND") {
         throw notFound();
       }
 
@@ -101,7 +101,7 @@ function UserDetailPage() {
     },
   });
 
-  const deleteError = deleteMutation.error instanceof ApiError ? deleteMutation.error : null;
+  const deleteError = deleteMutation.error instanceof ApiClientError ? deleteMutation.error : null;
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
@@ -180,7 +180,7 @@ function UserNotFound() {
 function UserDetailError({ error }: { error: unknown }) {
   const router = useRouter();
 
-  const message = error instanceof ApiError ? error.message : "Something went wrong";
+  const message = error instanceof ApiClientError ? error.message : "Something went wrong";
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">

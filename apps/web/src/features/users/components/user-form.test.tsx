@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { render, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ApiError } from "@/lib/api/error";
+import { ApiError } from "@/lib/api/api-error";
 import { UserForm } from "./user-form";
 
 test("renders default values", () => {
