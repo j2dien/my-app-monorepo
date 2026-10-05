@@ -24,7 +24,7 @@
   "private": true,
   "devDependencies": {
     "@types/bun": "^1.4.2",
-    "drizzle-kit": "^0.31.10"
+    "drizzle-kit": "^0.31.11"
   },
   "peerDependencies": {
     "typescript": "^7.0.2"
@@ -32,8 +32,8 @@
   "dependencies": {
     "@app/contracts": "workspace:*",
     "@hono/zod-validator": "^0.9.1",
-    "drizzle-orm": "^0.45.2",
-    "hono": "^4.13.7",
+    "drizzle-orm": "^0.45.3",
+    "hono": "^4.13.12",
     "postgres": "^3.4.9",
     "zod": "^4.6.5"
   }
